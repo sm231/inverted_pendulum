@@ -14,6 +14,12 @@ set(groot, 'defaultTextFontSize', 20);
 % Set global Font Size for Legends
 set(groot, 'defaultLegendFontSize', 14);
 
+%%
+hb = find_system(gcs,'Type','Block');
+handles = cell2mat(get_param(hb,'Handle'));
+arrayfun(@(h) set_param(h,'ShowName','on'), handles);
+arrayfun(@(h) set_param(h,'ShowName','on','HideAutomaticName','off'), handles);
+
 %% Parameters
 
 % Inverted Pendulum system
@@ -29,7 +35,9 @@ g = 9.81;           % Acceleration due to gravity [m/s^2]
 
 % Filter
 Ts = 0.005;         % Sampling time [5ms]
-Wc = 2;            % Cut-off frequency [Hz]
+f = 5;           % 2.5 5 10 20 
+Wc = f*2*pi;            % Cut-off frequency [rad/s]
+
 
 % Quantizer
 Fx = 0.456/4.41;    % Conversion factor from volts to meters [m/V]
@@ -70,15 +78,73 @@ trans_zeros = tzero(sys); %no transmission zeros
 
 %% Closed Loop model with LQR
 
-% Assignment suggestions for Q and R. !!! TUNING !!!
-Q = diag([4 4 3 3]); % Q(1,1) -> Cart Tracking
-R = 0.003;              % Q(2,2) -> Pendulum 
-                        % R -> Control Input
+%%%%%%%%%%%%%%%%%%%%%%% First Closed loop system experiments %%%%%%%%%%%%%%
+% Q and R given by KUL
+Q = diag([0.25 4 0 0]); R = 0.003;
+K = lqr(A, B, Q, R);
+sys_cl = ss(A - B*K, B, eye(4), zeros(4,1)); 
+
+% See the lqr_tuning.m for the plots of the tuning experiments
+
+%% Sensor error
+
+a = open('angle_sensor_data.mat');
+a = a.angle_sensor_data;
+a_data = a.Data;
+a_time = a.Time;
+
+figure
+plot(a_time, a_data);
+xlabel '$t$';
+ylabel '$V$';
+
+angle_noise_var = var(a_data)
+
+
+p = open('position_sensor_data.mat');
+p = p.position_sensor_data;
+p_data = p.Data;
+p_time = p.Time;
+
+figure
+plot(p_time, p_data);
+xlabel '$t$';
+ylabel '$V$';
+
+position_noise_var = var(p_data)
+
+
+%%
+%%%%%%%%%%%%%%%%%%% Realistic Closed loop system experiments %%%%%%%%%%%%%%
+% All tests were done with f = 5;
+% Q_base (best) f = 5;
+Q = diag([10 15 2 6]); R = 0.03;       
+
+% Q_slow
+%Q = diag([3 8 1 3]); R = 0.03; 
+
+% Q_fast_position
+%Q = diag([30 15 2 6]); R = 0.03;  
+
+% Q_strong_angle
+%Q = diag([10 50 2 8]); R = 0.03;  
+
+% Q_more_damping
+%Q = diag([10 15 8 20]); R = 0.03; 
+
+% R_high
+%Q = diag([10 15 2 6]); R = 0.8; 
+
+% R_low
+%Q = diag([10 15 2 6]); R = 0.003; 
+
+
 % LQR                  
 K = lqr(A, B, Q, R);
     
 % Closed loop system
 sys_cl = ss(A - B*K, B, eye(4), zeros(4,1)); 
+
 
 %% Performance
 
@@ -116,15 +182,3 @@ pzmap(sys_cl)
 
 %% Realistic Simulation
 
-% Low pass filter
-% Backward difference derivatives
-% Actuator Saturation
-% Quantization
-
-pos = out.position_sys_cl;
-
-t = pos(:, 1);
-x = pos(:, 2);
-
-info = stepinfo(x,t);
-setTime = info.SettlingTime

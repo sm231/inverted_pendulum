@@ -220,7 +220,38 @@ Figure \ref{fig:closed_loop} provides the simulink diagram of the closed loop sy
 
 \subsection{Tuning Experiments of the LQR Controller}
 
-In this section, we are interested in finding a good pair, $Q$ and $R$, to compute a controller $K$ that satisfies the control goals previously described. We will perform tuning experiments by varying the diagonal elements of $Q$ and $R$. For each experiment, we will plot the states, the control action, and the poles of the closed loop system. The poles are plotted to verify that the system is stable and to analyze how the pole placement changes with different values of $Q$ and $R$.
+In this section, we are interested in finding a good pair, $Q$ and $R$, to compute a controller $K$ that satisfies the control goals previously described. We will perform experiments by varying the diagonal elements of $Q$ and $R$ while keeping all other elements equal to the base values given in the assignment.
+
+\begin{equation}
+  Q_{\text{base}} = 
+  \begin{bmatrix}
+     0.25 && 0 && 0 && 0 \\
+    0 && 4 && 0 && 0 \\
+    0 && 0 && 0 && 0 \\
+    0 && 0 && 0 && 0 \\
+  \end{bmatrix}, \quad
+  R_{\text{base}} = 0.003.
+\end{equation}
+For each experiment, we will plot the states, the control action, and the poles of the closed loop system. The poles of the closed loop system are the eigenvalues of $A-BK$. Since the system is minimal, the poles of the closed loop system are also the eigenvalues of $A-BK$. The poles of the closed loop system determine the stability and the transient response of the system. For a stable system, all poles must be in the left half-plane. The further left the poles are, the faster the transient response will be. However, if the poles are too far left, this may lead to a large control action that may exceed the physical limitations of the actuator. Therefore, we want to find a good balance between a fast transient response and a control action that remains within the physical limitations of the actuator.
+
+\subsubsection{$Q_{1,1}$}
+
+Figure \ref{fig:q11} plots the results of varying $Q_{1,1} \in \{0.1, 0.25, 0.5, 1.0, 2.0, 5.0, 10.0, 20.0\}$. Increasing $Q_{1,1}$ leads to a faster settling time. However, this also leads to a larger control action that may exceed the physical limitations of the actuator. If the actuator saturates, the system is essentially operating in open-loop since the control action is not present. The system is therefore unstable. It is crucial to avoid continuous periods of saturation, since the system is then unstable in these periods. We also notice that for $Q_{1,1} = 20.0$, the control action exceeds the physical limitations of the actuator and the peaks of the other three states are much bigger. The combination of these two effects may lead to a failure in the real-life setup. As $Q_{1,1}$ increases, the poles of the closed loop system move further left, which corresponds to a faster transient response.\\
+\\
+We can conclude that increasing $Q_{1,1}$ may improve the settling time of the cart, but can have drastic effects on the control action and all other states. Increasing $Q_{1,1}$ must be done with caution, but if a fast response time of the cart is the primary concern, then a higher value of $Q_{1,1}$ might be acceptable. If the cart is too slow, then increasing $Q_{1,1}$ is a good option to speed up the system.
+
+
+\subsubsection{$Q_{2,2}$}
+
+Figure \ref{fig:q22} plots the results of varying $Q_{2,2} \in \{1.0, 4.0, 8.0, 16.0, 32.0\}$. Increasing $Q_{2,2}$ leads to a faster settling time and a smaller overshoot of the angle of the rod. The same could be said for the states $\dot{x}$ and $\dot{\alpha}$. However, $x$ is negatively affected. By increasing $Q_{2,2}$, the settling time is reduced for $x$. The peaks of the control action decreases as $Q_{2,2}$ increases. When increasing $Q_{2,2}$, the voltage at $t = 0$ does not change, whereas for $Q_{1,1}$ the voltage becomes larger in magnitude at $t = 0$.\\
+\\
+In general, increasing $Q_{2,2}$ has a stabilizing effect on the system. The peak of the control action becomes smaller and the states $\alpha, \dot{\alpha}, \dot{x}$ are less volatile. However, the downside is that the settling time of $x$ is increased. Whenever the controller is too aggressive, it is a good idea to increase $Q_{2,2}$ to stabilize the system and reduce the control action. If we compare how fast the settling time of $x$ decreases as $Q_{2,2}$ increases with $Q_{1,1}$ decreases, we can see that reducing the settling time of $x$ by increasing $Q_{1,1}$ is more effective than reducing the settling time of $x$ by increasing $Q_{2,2}$. Therefore, if we want to speed up the system, it is better to increase $Q_{1,1}$ than to increase $Q_{2,2}$. Conversely, if we are happy with a certain settling time of $x$ and we want to reduce the control action and in slow down the other states, it is better to increase $Q_{2,2}$ than to decrease $Q_{1,1}$.
+
+\subsubsection{$Q_{3,3}$}
+
+Figure \ref{fig:q33} plots the results of varying $Q_{3,3} \in \{0.0, 0.1, 0.5, 1.0, 2.0, 5.0, 10.0\}$
+
+
 
 \begin{figure}[htbp]
   \centering
@@ -402,7 +433,7 @@ Figure \ref{fig:template} provides the simulink diagram that is used to control 
 
 \section{Conclusion}
 
-
+lol
 \end{document}
 
 

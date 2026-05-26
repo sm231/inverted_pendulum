@@ -1,0 +1,454 @@
+\documentclass[a4paper,10pt]{article}
+\usepackage[utf8]{inputenc}
+
+\usepackage[english]{babel}
+\usepackage{xcolor}
+\usepackage[compact,small]{titlesec}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{xltabular}
+\usepackage{multirow}
+\usepackage{amsfonts,amsmath,amssymb,amsthm}
+\usepackage{mathtools}
+\usepackage{marginnote}
+\usepackage[top=1.8cm, bottom=1.8cm, outer=1.8cm, inner=1.8cm, heightrounded, marginparwidth=2.5cm, marginparsep=0.5cm]{geometry}
+\usepackage{enumitem}
+\setlist{noitemsep,parsep=2pt}
+\newcommand{\highlight}[1]{\textcolor{kuleuven}{#1}}
+\usepackage{pythonhighlight}
+\usepackage{graphicx}
+\usepackage{esdiff}
+\usepackage{mathrsfs}
+\usepackage{tikz}
+\usepackage{tikz-3dplot}
+\usepackage{pgfplots}
+\usepgfplotslibrary{colormaps}
+\usepackage[section]{algorithm}
+\usepackage{algorithmic}
+%\usepackage{algpseudocode}
+\usepackage{listings}
+\usepackage{xcolor}
+
+\usepackage{placeins}
+
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage[colorinlistoftodos]{todonotes}
+\usepackage{verbatim}
+
+\usepackage{siunitx}
+\usepackage{multirow}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+
+\usepackage{booktabs}
+\usepackage{enumitem}
+\usepackage[colorlinks,citecolor=blue,urlcolor=blue,bookmarks=false,hypertexnames=true]{hyperref} 
+\usepackage{cite}
+\usepackage{cleveref}
+
+\usepackage{lineno}
+\usepackage{wrapfig}
+\usepackage{booktabs} % Put this in your preamble
+% \linenumbers
+
+\lstset{
+    language=Matlab,
+    basicstyle=\small\ttfamily,
+    breaklines=true,
+    keywordstyle=\color{blue},
+    commentstyle=\color{gray},
+    frame=single
+}
+
+\allowdisplaybreaks
+
+\DeclareMathOperator*{\argmax}{arg\,max}
+\DeclareMathOperator*{\argmin}{arg\,min}
+
+
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{definition}[theorem]{Definition}
+\newtheoremstyle{bluehomework} % name
+  {3pt}                        % Space above
+  {3pt}                        % Space below
+  {}                           % Body font
+  {}                           % Indent amount
+  {\color{blue}\bfseries}     % Theorem head font
+  {.}                          % Punctuation after theorem head
+  { }                          % Space after theorem head
+  {}                           % Theorem head spec (empty = default)
+
+\theoremstyle{bluehomework}
+\newtheorem{homework}{Question}
+
+\numberwithin{equation}{section}
+\crefname{subsection}{subsection}{subsections}
+\crefname{equation}{}{}
+
+\title{Inverted Pendulum} 
+\author{Arno Genicot \& Stefan Markovsky}
+%\date{\today}
+
+\newcommand{\ReplaceMe}[1]{{\color{blue}#1}}
+\newcommand{\RemoveMe}[1]{{\color{purple}#1}}
+\newcommand{\red}[1]{\textcolor{red}{#1}}
+\newcommand{\green}[1]{\textcolor{green}{#1}}
+
+\begin{document}
+\fontfamily{ppl}
+\selectfont{}
+
+\maketitle
+
+\section{Model and Open Loop Analysis}
+
+\subsection{Linear State Space Representation}
+
+For the inverted pendulum system, the linear state equation $\dot{\mathbf{x}} = A\mathbf{x} + B\mathbf{u}$ becomes 
+
+\begin{equation} \label{eq:state_eq}
+  \begin{bmatrix} 
+    \dot{x} \\
+    \dot{\alpha} \\
+    \ddot{x} \\
+    \ddot{\alpha} \\  
+  \end{bmatrix}
+  = 
+  \begin{bmatrix} 
+    0 && 0 && 1 && 0 \\
+    0 && 0 && 0 && 1 \\
+    0 && -4.5277 && -16.8835 && 0 \\
+    0 && 47.0088 && 55.3557 && 0 \\
+  \end{bmatrix}
+  \begin{bmatrix} 
+    x \\
+    \alpha \\
+    \dot{x} \\
+    \dot{\alpha} \\  
+  \end{bmatrix} 
+  + 
+  \begin{bmatrix}
+    0 \\
+    0 \\
+    3.7778 \\
+    -12.3862 \\
+  \end{bmatrix}V.
+\end{equation}
+The state variables are 
+
+\begin{itemize}
+  \item $x$: \textbf{The position of the cart}, measured in meters. The position of the cart is measured corresponding to some reference point that indicates the zero position. This point is taken approximately at the middle of the track.
+  \item $\alpha$: \textbf{The angular position of the rod} in radians. The angle zero radians correspond to a rod that is upright. A positive angle will correspond to a rod that leans to the right and conversely. 
+  \item $\dot{x}$: \textbf{The velocity of the cart}, measured in meters per second.
+  \item $\dot{\alpha}$: \textbf{The velocity of the angular position of the rod}, measured in radians per second.
+\end{itemize}
+A general state-space representation has the form:
+
+\begin{equation} \label{eq:general_ss}
+  \begin{cases}
+    \dot{\mathbf{x}} &= A\mathbf{x} + B\mathbf{u} \\
+    \mathbf{y} &= C\mathbf{x} + D\mathbf{u}. \\
+  \end{cases}
+\end{equation}
+Ultimately, the goal of this project is to design a working state-feedback controller for a real-life setup. Consequently, to compute the control action, $\mathbf{u}=-K\mathbf{x}$, the input to the control module must provide the states $\mathbf{x}$. Since \textbf{the input, $\mathbf{u}$, has no instantaneous influence on the ouput, $\mathbf{y}$, $D = \mathbf{0}$}.\\
+\\
+In section \ref{closed_loop}, a first closed-loop system is designed. To easily analyze the controller, we assume an ideal environment. All states from equation (\ref{eq:state_eq}) are available with no additional noise. This corresponds to \textbf{$C$ equal to the identity matrix}. Of course, these assumptions are not realistic and do not coincide with the sensors that are used in the real-life setup.\\
+\\
+In section \ref{realistic_closed_loop}, a more realistic closed loop system is designed. The aim is to simulate the real-life setup more accurately. Because the setup only consists of sensors that measure the position of the cart, $x$, and the angle of the rod, $\alpha$, $C$ must be appropriately chosen, such that $\mathbf{y}$ consists of the measurable states. Consequently, 
+
+\begin{equation}
+  C = 
+  \begin{bmatrix}
+    1 && 0 && 0 && 0 \\
+    0 && 1 && 0 && 0
+  \end{bmatrix}.
+\end{equation}
+\textbf{This $C$ is used in the open loop analysis}.
+
+\subsection{Open Loop Analysis}
+
+We can determine the stability of the system by analyzing the eigenvalues of $A$. 
+
+\begin{equation}
+  \text{eig}(A) = 
+  \begin{bmatrix}
+    0 \\
+    6.0048787 \\
+    -5.0773709 \\
+    -17.8109883 \\
+  \end{bmatrix}
+\end{equation}
+\textbf{The system is unstable} (as expected), since it consists of an eigenvalue in the right-half plane. The system does not consist of transmission zeros. \textbf{The system is controllable} since the rank of the controllability matrix, $\mathcal{C}(A,B)$, is four. THis will allow us to place the poles of the closed loop system wherever we want. \textbf{The system is observable}, since the rank of the observability matrix, $\mathcal{O}(A, C)$, is four. Consequently, the observability and the controllability properties imply that \textbf{the system is minimal}. This implies further that the poles are equal to the eigenvalues of $A$. Since the system is controllable, all unstable modes are also controllable and \textbf{the system is stabilizable}. Since the system is observable, all unstable modes are observable and \textbf{the system is detectable}.
+
+\subsection{Control Goals}
+
+The primary objective of the controller is to \textbf{stabilize the inverted pendulum system} by keeping the rod in the upright equilibrium position through manipulation of the DC motor voltage. In addition, the controller must be capable of \textbf{tracking a desired cart position setpoint} in real time while maintaining closed-loop stability. \\
+\\
+The closed-loop response should exhibit a \textbf{fast settling time} with \textbf{limited overshoot} and \textbf{smooth cart motion}. Furthermore, the \textbf{control action} should remain \textbf{within the physical limitations of the actuator} in order to avoid voltage saturation. Finally, the controller should be sufficiently \textbf{robust against external disturbances} and small modeling inaccuracies, such that the pendulum can recover from perturbations while preserving stable operation.
+
+
+
+\section{LQR Controller and a First Closed Loop Model} \label{closed_loop}
+
+In this section, we assume that the entire state vector is available and therefore the matrix $C$ is set to the identity matrix. 
+
+\subsection{Simulink Diagram}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.8\textwidth]{figures/closed_loop.pdf}
+    \caption{Closed loop simulink diagram.}
+    \label{fig:closed_loop}
+\end{figure}
+
+Figure \ref{fig:closed_loop} provides the simulink diagram of the closed loop system. The diagram contains the following blocks
+
+\begin{itemize}
+  \item \textbf{(1) State-Space}: contains the state-space representation, equation (\ref{eq:general_ss}), of the inverted pendulum system. This block applies the input $\mathbf{u}$, which is provided by the ingoing arrow, to the system and outputs $\mathbf{y}$ through the outgoing arrow. The block is initialised with an initial state, $\mathbf{x_0 = 0}$, and the state, $\mathbf{x}$, is updated for each incoming input.     
+  \item \textbf{(2) Gain}: realises the control-law. The input is $\mathbf{x - x_{\text{des}}}$ and the ouput is control action, $\mathbf{u} = -K(\mathbf{x-x_{\text{des}}}$). The control action is directly fed to the (1) State-Space block.
+  \item \textbf{(3) Sum1}: applies the desired set point to the state of the system, $\mathbf{x-x_{\text{des}}}$. A linear stable system will bring the states to zero. By subtracting the desired cart position from the actual state, the system will bring the new state to zero by moving the cart to the desired position.  
+  \item \textbf{(4) Constant}: holds the desired set point of the cart position in a four dimensional vector. 
+  \item \textbf{(5) Demux}: deconstructs the four dimensional state vector from (1) State-Space, $\mathbf{x}$, into 4 separate signals. 
+  \item \textbf{(6) Scope}: plots the output states of (1) State-Space in time. 
+  \item \textbf{(7) Scope}: plots the control input in time.
+\end{itemize}
+
+\subsection{Tuning Experiments of the LQR Controller}
+
+In this section, we are interested in finding a good pair, $Q$ and $R$, to compute a controller $K$ that satisfies the control goals previously described. We will perform tuning experiments by varying the diagonal elements of $Q$ and $R$. For each experiment, we will plot the states, the control action, and the poles of the closed loop system. The poles are plotted to verify that the system is stable and to analyze how the pole placement changes with different values of $Q$ and $R$.
+
+\begin{figure}[htbp]
+  \centering
+  \begin{subfigure}{0.45\textwidth}
+    \includegraphics[width=\linewidth]{figures/q11_states.png}
+    \caption{States evolution.}
+  \end{subfigure}
+  \begin{subfigure}{0.45\textwidth}
+    \includegraphics[width=\linewidth]{figures/q11_voltage.png}
+    \caption{Control action evolution.}
+  \end{subfigure}
+  \begin{subfigure}{0.45\textwidth}
+    \includegraphics[width=\linewidth]{figures/q11_poles.png}
+    \caption{Poles of the system.}
+  \end{subfigure}
+  \caption{Simulation results for different values of $Q_{1,1}$.}
+  \label{fig:q11}
+\end{figure} 
+
+\begin{figure}[htbp]
+  \centering
+  \begin{subfigure}{0.45\textwidth}
+    \includegraphics[width=\linewidth]{figures/q22_states.png}
+    \caption{States evolution.}
+  \end{subfigure}
+  \begin{subfigure}{0.45\textwidth}
+    \includegraphics[width=\linewidth]{figures/q22_voltage.png}
+    \caption{Control action evolution.}
+  \end{subfigure}
+  \begin{subfigure}{0.45\textwidth}
+    \includegraphics[width=\linewidth]{figures/q22_poles.png}
+    \caption{Poles of the system.}
+  \end{subfigure}
+  \caption{Simulation results for different values of $Q_{2,2}$.}
+  \label{fig:q22}
+\end{figure} 
+
+\begin{figure}[htbp]
+  \centering
+  \begin{subfigure}{0.45\textwidth}
+    \includegraphics[width=\linewidth]{figures/q33_states.png}
+    \caption{States evolution.}
+  \end{subfigure}
+  \begin{subfigure}{0.45\textwidth}
+    \includegraphics[width=\linewidth]{figures/q33_voltage.png}
+    \caption{Control action evolution.}
+  \end{subfigure}
+  \begin{subfigure}{0.45\textwidth}
+    \includegraphics[width=\linewidth]{figures/q33_poles.png}
+    \caption{Poles of the system.}
+  \end{subfigure}
+  \caption{Simulation results for different values of $Q_{3,3}$.}
+  \label{fig:q33}
+\end{figure} 
+
+\begin{figure}[htbp]
+  \centering
+  \begin{subfigure}{0.45\textwidth}
+    \includegraphics[width=\linewidth]{figures/q44_states.png}
+    \caption{States evolution.}
+  \end{subfigure}
+  \begin{subfigure}{0.45\textwidth}
+    \includegraphics[width=\linewidth]{figures/q44_voltage.png}
+    \caption{Control action evolution.}
+  \end{subfigure}
+  \begin{subfigure}{0.45\textwidth}
+    \includegraphics[width=\linewidth]{figures/q44_poles.png}
+    \caption{Poles of the system.}
+  \end{subfigure}
+  \caption{Simulation results for different values of $Q_{4,4}$.}
+  \label{fig:q44}
+\end{figure} 
+
+\begin{figure}[htbp]
+  \centering
+  \begin{subfigure}{0.45\textwidth}
+    \includegraphics[width=\linewidth]{figures/r_states.png}
+    \caption{States evolution.}
+  \end{subfigure}
+  \begin{subfigure}{0.45\textwidth}
+    \includegraphics[width=\linewidth]{figures/r_voltage.png}
+    \caption{Control action evolution.}
+  \end{subfigure}
+  \begin{subfigure}{0.45\textwidth}
+    \includegraphics[width=\linewidth]{figures/r_poles.png}
+    \caption{Poles of the system.}
+  \end{subfigure}
+  \caption{Simulation results for different values of $R$.}
+  \label{fig:r}
+\end{figure} 
+
+\FloatBarrier
+
+\subsection{Setpoint Change}
+
+nope hehehe
+
+\section{A More Realistic Closed Loop Model} \label{realistic_closed_loop}
+
+\subsection{Simulink Diagram}
+
+Figure \ref{fig:more_realistic_closed_loop} plots the more realistic closed loop system. Blocks (1), (2), (3), (4) remain the same as in section \ref{closed_loop}. The $C$ matrix in block (1) is no longer the identity matrix, such that the output consists of the measurable states, $x$ and $\alpha$.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.8\textwidth]{figures/realistic_closed_loop_system.pdf}
+    \caption{The more realistic closed loop simulink diagram.}
+    \label{fig:more_realistic_closed_loop}
+\end{figure}
+
+The remaining blocks are
+
+\begin{itemize}
+  \item \textbf{(8) Quantizer subsystem}: implements the A/D-converter and adds the sensor noise to the measurements. The simulink subsystem is shown in figure \ref{fig:quantizer}. The subsystem first separates the measurements into two separate signals with (8.1) demux block. Each measurement is converted, with (8.2) gain block, to voltage through the respective conversion factors, $F_x$ and $F_\alpha$. The Gaussian random number generators, (8.3) in the simulink diagram, are set to simulate the sensor noise of the measurements. The variation of the noise was estimated by collecting data from the real setup and calculating the variation. Figure \ref{fig:sensor_noise} provides a plot of the collected noise measurements. The simulink noise blocks are both set to zero mean and $10^-9$ variation. Next, the quantizer block (8.4) follows. (8.4) is set to a quantization interval of $\frac{\text{Voltage range}}{2^{\text{resolution bits}}} = \frac{20}{2^{16}} \approx 0.00030518$. Finally, Each signal is returned through the conversion factors to the measurement units with (8.5) and the both signals are combined into a signal vector with the mux block.  
+  \item \textbf{(9) Filter subsystem}: implements the low-pass filter of the raw measurements. Figure \ref{fig:filter} shows the simulink diagram of the subsystem. The diagram realises 
+  \[ y_n^f = \frac{\omega_c T_s}{1+\omega_cT_s}y_n + \frac{1}{1+\omega_cT_s}y_{n-1}^f.\]
+  In the second term, $y_{n-1}^f$ is accomplished through the (9.4) delay block. The two terms are summed with (9.3) and both terms are multiplied with the correct factor through the gain blocks (9.1) and (9.2). The output is forwarded to the next block and also stored in the delay block for the next filter calculation. The delay block is initialised with $\mathbf{0}$.
+  \item \textbf{(10) Differentiation subsystem}: calculates the states $\dot{x}$ and $\dot{\alpha}$ using the backward difference equation:
+  \[ \dot{y_n} = \frac{y^f_n - y^f_{n-1}}{T_s}.\]
+  Figure \ref{fig:differentiation} shows the simulink subsystem diagram. As with the filter subsystem, $y^f_{n-1}$ is obtained with the (10.2) delay block. The mux block (10.5) concatenates all the states into a single vector and the subsystem forwards the result to the control-module. 
+  \item \textbf{(11) Saturation}: receives the control action and limits the voltage inputs to the actuator. The saturation limits are set to $-5$ Volts and $+5$ Volts. The signal is forwarded to the state space model in block (1).
+\end{itemize}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.8\textwidth]{figures/quantizer.pdf}
+    \caption{The quantization subsystem in the more realistic closed loop simulink diagram.}
+    \label{fig:quantizer}
+\end{figure}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.8\textwidth]{figures/filter.pdf}
+    \caption{The filter subsystem in the more realistic closed loop simulink diagram.}
+    \label{fig:filter}
+\end{figure}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.8\textwidth]{figures/differentiation.pdf}
+    \caption{The differentiation subsystem in the more realistic closed loop simulink diagram.}
+    \label{fig:differentiation}
+\end{figure}
+
+\begin{figure}[htbp]
+  \centering
+  \begin{subfigure}{0.45\textwidth}
+    \includegraphics[width=\linewidth]{figures/angle_sensor_data.png}
+    \caption{Measurements of the sensor on the rod when the rod is stationary. }
+  \end{subfigure}
+  \begin{subfigure}{0.45\textwidth}
+    \includegraphics[width=\linewidth]{figures/position_sensor_data.png}
+    \caption{Sensor Measurements of the sensor of the cart position when the rod is resting and no voltage is applied.}
+  \end{subfigure}
+  \caption{Plots the measurements of the sensors when the setup is in rest. The rod is layed down and no voltage is applied. This data is used to calculate the experimental variance of teh sensor noise. These calculations are used to set the random number generators in the simulink diagram of section \ref{realistic_closed_loop}.}
+  \label{fig:model_selection}
+\end{figure} 
+
+\FloatBarrier
+\subsection{Setpoint Change}
+\subsection{Influence of the Cut-Off Frequency}
+
+\section{Proof of the Pudding} \label{labo}
+
+\subsection{Simulink Diagram}
+
+Figure \ref{fig:template} provides the simulink diagram that is used to control the setup in real time. The filter, differentiation, set-point, and control action blocks are the same as in section \ref{realistic_closed_loop}. The Analog output block sends the control action to the DC motor connected to the cart. The analag input block outputs the measurements of the sensors on the setup and computes the conversion from volts to the measurement units. In comparison to the diagram in section \ref{realistic_closed_loop}, two blocks are not present: The state-space block and the A/D converter block. The reason is that the previous diagrams were meant for simulation. The quantization already happens in the sensors and the steady-state block is the linear representation of the inverted pendulum system. The diagram in figure \ref{fig:template} is closed by the actual nonlinear system evolving in front of our eyes. And it is quantified and digitalized through the sensors present on the setup. Consequently, the diagram is a closed loop and the controller performs an LQR negative state-feedback control law.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.8\textwidth]{figures/template_inverted_pendulum_2025b.pdf}
+    \caption{Simulink diagram used in the real setup.}
+    \label{fig:template}
+\end{figure}
+
+\subsection{Setpoint Tracking}
+\subsection{Disturbance Rejection}
+\subsection{Cut-Off Frequency}
+
+\section{Conclusion}
+
+
+\end{document}
+
+
+
+
+
+
+
+
+
+chat
+Add comment         
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.7\textwidth]{figures/impulse_iir.png}
+    \caption{Impulse response of the original IIR system}
+    \label{fig:iir}
+\end{figure}
+
+\begin{figure}[htbp]
+  \centering
+  \begin{subfigure}{0.45\textwidth}
+    \includegraphics[width=\linewidth]{figures/aic_exp1.png}
+  \end{subfigure}
+  \begin{subfigure}{0.45\textwidth}
+    \includegraphics[width=\linewidth]{figures/aic_exp2.png}
+  \end{subfigure}
+  \caption{The normalized cost functions for estimation data, validation data and AIC-criterion
+for $\sigma_{\hat{y}}$ = 0.5 (left) and $\sigma_{\hat{y}}$ = 0.05 (right). The data are generated by an IIR system with
+additional output noise. The identified models are FIR models of increasing order.}
+  \label{fig:model_selection}
+\end{figure} 
+
+\begin{table}[htbp]
+\centering
+    \begin{tabular}{lc}
+        \toprule
+            & \textbf{Type for $(0,0)$} \\
+        \midrule
+          $V < -\frac{2}{A_1}19$   &  Stable Node \\
+          $-\frac{2}{A_1}19 < V < \frac{2}{A_1}$ & Stable spiral \\
+          $V = \frac{2}{A_1}$ & Center \\
+          $\frac{2}{A1} < V < \frac{2}{A_1}21$ & Unstable spiral \\
+          $\frac{2}{A_1}21 < V$ & Unstable node \\
+        \bottomrule
+    \end{tabular}
+    \caption{Linear classification of the equilibrium point $(0,0)$.}
+    \label{tab:lin_class}
+\end{table}

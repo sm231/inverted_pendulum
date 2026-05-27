@@ -11,6 +11,7 @@
 \usepackage{amsfonts,amsmath,amssymb,amsthm}
 \usepackage{mathtools}
 \usepackage{marginnote}
+\usepackage{parskip}
 \usepackage[top=1.8cm, bottom=1.8cm, outer=1.8cm, inner=1.8cm, heightrounded, marginparwidth=2.5cm, marginparsep=0.5cm]{geometry}
 \usepackage{enumitem}
 \setlist{noitemsep,parsep=2pt}
@@ -155,10 +156,12 @@ A general state-space representation has the form:
     \mathbf{y} &= C\mathbf{x} + D\mathbf{u}. \\
   \end{cases}
 \end{equation}
-Ultimately, the goal of this project is to design a working state-feedback controller for a real-life setup. Consequently, to compute the control action, $\mathbf{u}=-K\mathbf{x}$, the input to the control module must provide the states $\mathbf{x}$. Since \textbf{the input, $\mathbf{u}$, has no instantaneous influence on the ouput, $\mathbf{y}$, $D = \mathbf{0}$}.\\
-\\
-In section \ref{closed_loop}, a first closed-loop system is designed. To easily analyze the controller, we assume an ideal environment. All states from equation (\ref{eq:state_eq}) are available with no additional noise. This corresponds to \textbf{$C$ equal to the identity matrix}. Of course, these assumptions are not realistic and do not coincide with the sensors that are used in the real-life setup.\\
-\\
+Ultimately, the goal of this project is to design a working state-feedback controller for a real-life setup. Consequently, to compute the control action, $\mathbf{u}=-K\mathbf{x}$, the input to the control module must provide the states $\mathbf{x}$. Since \textbf{the input, $\mathbf{u}$, has no instantaneous influence on the ouput, $\mathbf{y}$, $D = \mathbf{0}$}.
+\medskip
+
+In section \ref{closed_loop}, a first closed-loop system is designed. To easily analyze the controller, we assume an ideal environment. All states from equation (\ref{eq:state_eq}) are available with no additional noise. This corresponds to \textbf{$C$ equal to the identity matrix}. Of course, these assumptions are not realistic and do not coincide with the sensors that are used in the real-life setup.
+\medskip  
+
 In section \ref{realistic_closed_loop}, a more realistic closed loop system is designed. The aim is to simulate the real-life setup more accurately. Because the setup only consists of sensors that measure the position of the cart, $x$, and the angle of the rod, $\alpha$, $C$ must be appropriately chosen, such that $\mathbf{y}$ consists of the measurable states. Consequently, 
 
 \begin{equation}
@@ -187,8 +190,9 @@ We can determine the stability of the system by analyzing the eigenvalues of $A$
 
 \subsection{Control Goals}
 
-The primary objective of the controller is to \textbf{stabilize the inverted pendulum system} by keeping the rod in the upright equilibrium position through manipulation of the DC motor voltage. In addition, the controller must be capable of \textbf{tracking a desired cart position setpoint} in real time while maintaining closed-loop stability. \\
-\\
+The primary objective of the controller is to \textbf{stabilize the inverted pendulum system} by keeping the rod in the upright equilibrium position through manipulation of the DC motor voltage. In addition, the controller must be capable of \textbf{tracking a desired cart position setpoint} in real time while maintaining closed-loop stability. 
+\medskip
+
 The closed-loop response should exhibit a \textbf{fast settling time} with \textbf{limited overshoot} and \textbf{smooth cart motion}. Furthermore, the \textbf{control action} should remain \textbf{within the physical limitations of the actuator} in order to avoid voltage saturation. Finally, the controller should be sufficiently \textbf{robust against external disturbances} and small modeling inaccuracies, such that the pendulum can recover from perturbations while preserving stable operation.
 
 
@@ -232,34 +236,40 @@ In this section, we are interested in finding a good pair, $Q$ and $R$, to compu
   \end{bmatrix}, \quad
   R_{\text{base}} = 0.003.
 \end{equation}
-For each experiment, we will plot the states, the control action, and the poles of the closed loop system. The poles of the closed loop system are the eigenvalues of $A-BK$. Since the system is minimal, the poles of the closed loop system are also the eigenvalues of $A-BK$. The poles of the closed loop system determine the stability and the transient response of the system. For a stable system, all poles must be in the left half-plane. The further left the poles are, the faster the transient response will be. However, if the poles are too far left, this may lead to a large control action that may exceed the physical limitations of the actuator. Therefore, we want to find a good balance between a fast transient response and a control action that remains within the physical limitations of the actuator.\\
-\\
+For each experiment, we will plot the states, the control action, and the poles of the closed loop system. The poles of the closed loop system are the eigenvalues of $A-BK$. Since the system is minimal, the poles of the closed loop system are also the eigenvalues of $A-BK$. The poles of the closed loop system determine the stability and the transient response of the system. For a stable system, all poles must be in the left half-plane. The further left the poles are, the faster the transient response will be. However, if the poles are too far left, this may lead to a large control action that may exceed the physical limitations of the actuator. Therefore, we want to find a good balance between a fast transient response and a control action that remains within the physical limitations of the actuator.
+\medskip
+
 The goal of the experiments is to build understanding on how each element of $Q$ and $R$ affects the system. This understanding will allow us to find a good pair, $Q$ and $R$, that satisfies the control goals. We will write down our observations and  discuss the trade-offs that are made when varying each element of $Q$ and $R$. We are also interested in the effective range of each element. This will provide intuition on how much we can vary each element without drastically affecting the system. We want to avoid blindly adjusting the elements of $Q$ and $R$ without understanding the effects of these adjustments. 
 
 \subsubsection{$Q_{1,1}$}
 
-Figure \ref{fig:q11} plots the results of varying $Q_{1,1} \in \{0.1, 0.25, 0.5, 1.0, 2.0, 5.0, 10.0, 20.0\}$. Increasing $Q_{1,1}$ leads to a faster settling time. However, this also leads to a larger control action that may exceed the physical limitations of the actuator. If the actuator saturates, the system is essentially operating in open-loop since the control action is not present. The system is therefore unstable. It is crucial to avoid continuous periods of saturation, since the system is then unstable in these periods. We also notice that for $Q_{1,1} = 20.0$, the control action exceeds the physical limitations of the actuator and the peaks of the other three states are much bigger. The combination of these two effects may lead to a failure in the real-life setup. As $Q_{1,1}$ increases, the poles of the closed loop system move further left, which corresponds to a faster transient response.\\
-\\
+Figure \ref{fig:q11} plots the results of varying $Q_{1,1} \in \{0.1, 0.25, 0.5, 1.0, 2.0, 5.0, 10.0, 20.0\}$. Increasing $Q_{1,1}$ leads to a faster settling time. However, this also leads to a larger control action that may exceed the physical limitations of the actuator. If the actuator saturates, the system is essentially operating in open-loop since the control action is not present. The system is therefore unstable. It is crucial to avoid continuous periods of saturation, since the system is then unstable in these periods. We also notice that for $Q_{1,1} = 20.0$, the control action exceeds the physical limitations of the actuator and the peaks of the other three states are much bigger. The combination of these two effects may lead to a failure in the real-life setup. As $Q_{1,1}$ increases, the poles of the closed loop system move further left, which corresponds to a faster transient response.
+\medskip
+
 We can conclude that increasing $Q_{1,1}$ may improve the settling time of the cart, but can have drastic effects on the control action and all other states. Increasing $Q_{1,1}$ must be done with caution, but if a fast response time of the cart is the primary concern, then a higher value of $Q_{1,1}$ might be acceptable. If the cart is too slow, then increasing $Q_{1,1}$ is a good option to speed up the system.
 
 
 \subsubsection{$Q_{2,2}$}
 
-Figure \ref{fig:q22} plots the results of varying $Q_{2,2} \in \{1.0, 4.0, 8.0, 16.0, 32.0\}$. Increasing $Q_{2,2}$ leads to a faster settling time and a smaller overshoot of the angle of the rod. The same could be said for the states $\dot{x}$ and $\dot{\alpha}$. However, $x$ is negatively affected. By increasing $Q_{2,2}$, the settling time is reduced for $x$. The peaks of the control action decreases as $Q_{2,2}$ increases. When increasing $Q_{2,2}$, the voltage at $t = 0$ does not change, whereas for $Q_{1,1}$ the voltage becomes larger in magnitude at $t = 0$.\\
-\\
+Figure \ref{fig:q22} plots the results of varying $Q_{2,2} \in \{1.0, 4.0, 8.0, 16.0, 32.0\}$. Increasing $Q_{2,2}$ leads to a faster settling time and a smaller overshoot of the angle of the rod. The same could be said for the states $\dot{x}$ and $\dot{\alpha}$. However, $x$ is negatively affected. By increasing $Q_{2,2}$, the settling time is reduced for $x$. The peaks of the control action decreases as $Q_{2,2}$ increases. When increasing $Q_{2,2}$, the voltage at $t = 0$ does not change, whereas for $Q_{1,1}$ the voltage becomes larger in magnitude at $t = 0$.
+\medskip
+
 In general, increasing $Q_{2,2}$ has a stabilizing effect on the system. The peak of the control action becomes smaller and the states $\alpha, \dot{\alpha}, \dot{x}$ are less volatile. However, the downside is that the settling time of $x$ is increased. Whenever the controller is too aggressive, it is a good idea to increase $Q_{2,2}$ to stabilize the system and reduce the control action. If we compare how fast the settling time of $x$ decreases as $Q_{2,2}$ increases with $Q_{1,1}$ decreases, we can see that reducing the settling time of $x$ by increasing $Q_{1,1}$ is more effective than reducing the settling time of $x$ by increasing $Q_{2,2}$. Therefore, if we want to speed up the system, it is better to increase $Q_{1,1}$ than to increase $Q_{2,2}$. Conversely, if we are happy with a certain settling time of $x$ and we want to reduce the control action and in slow down the other states, it is better to increase $Q_{2,2}$ than to decrease $Q_{1,1}$.
 
 \subsubsection{$Q_{3,3}$ and $Q_{4,4}$}
 
-Figure \ref{fig:q33} plots the results of varying $Q_{3,3} \in \{0.0, 0.1, 0.5, 1.0, 2.0, 5.0, 10.0\}$ and figure \ref{fig:q44} plots the results of varying $Q_{4,4} \in \{0.0, 0.1, 0.5, 1.0, 2.0, 5.0, 10.0\}$. The effects of varying $Q_{3,3}$ and $Q_{4,4}$ are similar as with $Q_{2,2}$. We notice from the figures, that increasing $Q_{3,3}$ and $Q_{4,4}$ reduces the overshoots of the states $\alpha, \dot{\alpha}$ and $\dot{x}$. The main effect of $Q_{3,3}$ is to supress the settling time of $\dot{x}$ and of $Q_{4,4}$ is to supress the settling time of $\dot{\alpha}$. This is observed in the figures. The control action reacts in the same way as in the experiment with $Q_{2,2}$. The voltage at $t = 0$ does not change when increasing $Q_{3,3}$ and $Q_{4,4}$, although the peaks do become smaller. The settling time of $x$ increases as $Q_{3,3}$ and $Q_{4,4}$ increases.\\
-\\
-The main difference between $Q_{2,2}$ with $Q_{3,3}$ and $Q_{4,4}$ can be seen in the evolution of the poles. We notice that increasing $Q_{2,2}$ moves the poles to the left. Whereas, increasing $Q_{3,3}$ or $Q_{4,4}$ moves the poles mainly towards the real axis. This means that increasing $Q_{3,3}$ and $Q_{4,4}$ has a bigger effect on the oscillatory behavior of the system than increasing $Q_{2,2}$. For now this is not a concern since the system has no noise present. The evolution is theoretically evolving smoothly towards the equilibrium point. However, in the real-life setup, there will be noise present and the system will not evolve smoothly towards the equilibrium point. The system will be perturbed by the noise and the steady state error will not be zero anymore. In this case, it is important to have a good damping of the system to reduce the oscillations around the equilibrium point. Therefore, increasing $Q_{3,3}$ and $Q_{4,4}$ might be a good idea to improve the damping of the system and reduce the oscillations around the equilibrium point. \\
-\\
-The difference between $Q_{3,3}$ and $Q_{4,4}$ is that increasing $Q_{3,3}$ has a bigger effect on the state $\dot{x}$, whereas increasing $Q_{4,4}$ has a bigger effect on the state $\dot{\alpha}$. We also observe that $Q_{3,3}$ is more sensitive to changes in the system than $Q_{4,4}$. This can be seen in the difference of the change of the state $x$ when increasing $Q_{3,3}$ versus $Q_{4,4}$. The settling time of $x$ when $Q_{3,3} = 10$ is much longer than when $Q_{4,4} = 10$. This observation also applies to the control action. So, increasing $Q_{3,3}$ must be done with caution as it can have great negative impact on the settling time of $x$, whilest varying $Q_{4,4}$ is more ideal for fine-tuning a desired behaviour.\\
+Figure \ref{fig:q33} plots the results of varying $Q_{3,3} \in \{0.0, 0.1, 0.5, 1.0, 2.0, 5.0, 10.0\}$ and figure \ref{fig:q44} plots the results of varying $Q_{4,4} \in \{0.0, 0.1, 0.5, 1.0, 2.0, 5.0, 10.0\}$. The effects of varying $Q_{3,3}$ and $Q_{4,4}$ are similar as with $Q_{2,2}$. We notice from the figures, that increasing $Q_{3,3}$ and $Q_{4,4}$ reduces the overshoots of the states $\alpha, \dot{\alpha}$ and $\dot{x}$. The main effect of $Q_{3,3}$ is to supress the settling time of $\dot{x}$ and of $Q_{4,4}$ is to supress the settling time of $\dot{\alpha}$. This is observed in the figures. The control action reacts in the same way as in the experiment with $Q_{2,2}$. The voltage at $t = 0$ does not change when increasing $Q_{3,3}$ and $Q_{4,4}$, although the peaks do become smaller. The settling time of $x$ increases as $Q_{3,3}$ and $Q_{4,4}$ increases.
+\medskip
+
+The main difference between $Q_{2,2}$ with $Q_{3,3}$ and $Q_{4,4}$ can be seen in the evolution of the poles. We notice that increasing $Q_{2,2}$ moves the poles to the left. Whereas, increasing $Q_{3,3}$ or $Q_{4,4}$ moves the poles mainly towards the real axis. This means that increasing $Q_{3,3}$ and $Q_{4,4}$ has a bigger effect on the oscillatory behavior of the system than increasing $Q_{2,2}$. For now this is not a concern since the system has no noise present. The evolution is theoretically evolving smoothly towards the equilibrium point. However, in the real-life setup, there will be noise present and the system will not evolve smoothly towards the equilibrium point. The system will be perturbed by the noise and the steady state error will not be zero anymore. In this case, it is important to have a good damping of the system to reduce the oscillations around the equilibrium point. Therefore, increasing $Q_{3,3}$ and $Q_{4,4}$ might be a good idea to improve the damping of the system and reduce the oscillations around the equilibrium point. 
+\medskip
+
+The difference between $Q_{3,3}$ and $Q_{4,4}$ is that increasing $Q_{3,3}$ has a bigger effect on the state $\dot{x}$, whereas increasing $Q_{4,4}$ has a bigger effect on the state $\dot{\alpha}$. We also observe that $Q_{3,3}$ is more sensitive to changes in the system than $Q_{4,4}$. This can be seen in the difference of the change of the state $x$ when increasing $Q_{3,3}$ versus $Q_{4,4}$. The settling time of $x$ when $Q_{3,3} = 10$ is much longer than when $Q_{4,4} = 10$. This observation also applies to the control action. So, increasing $Q_{3,3}$ must be done with caution as it can have great negative impact on the settling time of $x$, whilest varying $Q_{4,4}$ is more ideal for fine-tuning a desired behaviour.
 
 \subsubsection{$R$}
 
-Figure \ref{fig:r} plots the results of varying $R \in \{0.001, 0.003, 0.005, 0.01, 0.03, 0.05\}$. Increasing $R$ leads to a smaller control action. Although, the experiments for $Q_{2,2}, Q_{3,3}$ and $Q_{4,4}$ also exhibit this property, $R$ can reduce the Voltage at $t = 0$. Of course the downside is that the system becomes less responsive. The settling time of $x$ can be seen to increase as $R$ increases and the overshoot of the remaining states diminishes. From the plot of the poles, we notice that the main effect of $R$ is to move the non-dominant poles towards the origin.\\
+Figure \ref{fig:r} plots the results of varying $R \in \{0.001, 0.003, 0.005, 0.01, 0.03, 0.05\}$. Increasing $R$ leads to a smaller control action. Although, the experiments for $Q_{2,2}, Q_{3,3}$ and $Q_{4,4}$ also exhibit this property, $R$ can reduce the Voltage at $t = 0$. Of course the downside is that the system becomes less responsive. The settling time of $x$ can be seen to increase as $R$ increases and the overshoot of the remaining states diminishes. From the plot of the poles, we notice that the main effect of $R$ is to move the non-dominant poles towards the origin.
+\medskip
 
 \begin{figure}[htbp]
   \centering
@@ -355,8 +365,9 @@ Figure \ref{fig:r} plots the results of varying $R \in \{0.001, 0.003, 0.005, 0.
 
 \subsection{Setpoint Change on a Chosen Pair $Q$ and $R$}
 
-In this section we try and find a good pair, $Q$ and $R$, by adjusting the values. A good value is one that provides a satisfactory behaviour according to the control objectives. The system is validated by observing the system's response to a set-point change of 10 cm. We start from the $Q_{\text{base}}$ and $R_{\text{base}}$ and perform updates. At each update, we observe the evolution of the states and the control action, and we check if the behaviour is satisfactory. If the systen is not satisfactory, we perform another update through the intuition built in the previous section and continue this process until we find a good pair, $Q$ and $R$, that satisfy the control goals. Table \ref{tab:tuning_data} provides some data on the set-point behaviour of the systems at each update.\\
-\\
+In this section we try and find a good pair, $Q$ and $R$, by adjusting the values. A good value is one that provides a satisfactory behaviour according to the control objectives. The system is validated by observing the system's response to a set-point change of 10 cm. We start from the $Q_{\text{base}}$ and $R_{\text{base}}$ and perform updates. At each update, we observe the evolution of the states and the control action, and we check if the behaviour is satisfactory. If the systen is not satisfactory, we perform another update through the intuition built in the previous section and continue this process until we find a good pair, $Q$ and $R$, that satisfy the control goals. Table \ref{tab:tuning_data} provides some data on the set-point behaviour of the systems at each update.
+\medskip
+
 \begin{enumerate}
   \item Base: Figure \ref{fig:step_base} shows the response of the system to a set-point change of 10 cm for $Q_{\text{base}}$ and $R_{\text{base}}$. The settling time of $x$ is not satisfactory. So, we increase $Q_{1,1}$.
   \begin{figure}[htbp]
@@ -453,7 +464,7 @@ In this section we try and find a good pair, $Q$ and $R$, by adjusting the value
     \caption{Tuning data for the set-point response of the system.}
     \label{tab:tuning_data}
 \end{table}
-The values $Q_{3,3}$ and $Q_{4,4}$ are left as zero. Currently, the behaviour of the system satisfies the design requirements. In the next section, a more realistic closed loop model will be presented and the design will be finalized. So, the parameters for the LQR becomes
+The values $Q_{3,3}$ and $Q_{4,4}$ are left as zero. Currently, the behaviour of the system satisfies the design requirements. In the next section, a more realistic closed loop model will be presented, and the design will be finalized. So, the parameters for the LQR becomes
 
 \begin{equation}
   Q_1 = 
@@ -578,15 +589,19 @@ Figure \ref{fig:real2} realises the expected behaviour. The states and the contr
 
 \subsection{Influence of the Cut-Off Frequency}
 
-The filter is placed directly after the sensor measurements. Its role is to remove the noise that orginated from the sensors and smooth out the outgoing signal. If the outgoing signal is not smooth enough, then the finite difference calculation of the states $\dot{x}$ and $\dot{\alpha}$ will be also affected. However, if the cut-off frequency is too low, then the filter will remove the actual system dynamics and the controller will be slow to react. Thus, our goal is to find the ideal cut-off frequency that removes the noise and smooths out $\dot{x}$ and $\dot{\alpha}$, but does not remove the actual system dynamics. \\
-\\
-We investigate the influence of the cut-off frequency on the behaviour of the system through multiple simulations and comparing them to each other. We would like to confirm the previous intuition and find an optimal cut-off frequency. Figure \ref{fig:real_freq_01}, \ref{fig:real_freq} and \ref{fig:real_freq_50} plot the evolution of the states and the control action of a set-point change of 10 cm for the realistic closed loop system with a controller computed by LQR with $Q_2$ and $R_2$ and cut-off frequencies, $f \in \{0.1, 0.3, 0.5, 1.0, 2.0, 5.0, 10.0, 50.0\}$ Hz. \\
-\\
-From figure \ref{fig:real_freq}, we notice that for lower frequencies the system behaves with higher frequency and larger amplitude. Compare for $f = 0.3$ Hz to $f = 10$ Hz and notice the states $\alpha, \dot{\alpha}, \dot{x}$ and the control action. For $f = 10.0$ Hz, the system oscillates with a lower frequency and a smaller amplitude. For $f = 0.3$ Hz, the system oscillates with a high frequency and a large amplitude. Basically, the system reacts sluggish for higher cut-off frequencies and reacts more quickly. Physically, when the cart tracks the set-point, it will speed up then slow down and then speed up again. It is as if the cart is being operated by a drunk driver. This analogy is very fitting, since the filter is removing important dynamics of the system, it can be seen as an impaired receptor to the controller. From this point of view, we can also explain the many peaks (high frequency) and large amplitude. Only when the dynamics of the system are large enough will the controller be able to act upon it. However, once these dynamics are large, the controller will send a large control action to compensate for its delayed response. This in turn will momentarily stabilize the system, where again the controller will have to wait until the dynamics are sufficiently large enough to act upon. This explanation is supported by the evolution of the states in figure \ref{fig:real_freq}. For $f = 0.3$ the blue curve on the figure, we can see how the peaks and dips of $\alpha$ align in time with the peaks and dips of the control action. And the evolution $\alpha$ and $\dot{\alpha}$ is out of phase with $\dot{x}$.\\
-\\
-This behaviour is taken to its extreme in figure \ref{fig:real_freq_01} for $f = 0.1$ Hz. Once the system detects the velocity of $\alpha$, it is already too late. The controller will compensate with a control action that is too large for the actuator. The actuator will then saturate and the system will be unstable. \\
-\\
-However, when the cut-off frequency is too high, we also observe high frequency oscillations, but with smaller amplitude. This is observed in figure \ref{fig:real_freq_50} for $f = 50$ Hz. As the cut-off frequency is too big, sensor noise is not adequately filtered and reaches the controller. The noise affects finite-difference calculations non-smooth trajectories. This is clearly visible by the trajectory of $\dot{x}$ and $\dot{\alpha}$. This in turn affects the controller performance. The system is overly responsive\\
+The filter is placed directly after the sensor measurements. Its role is to remove the noise that orginated from the sensors and smooth out the outgoing signal. If the outgoing signal is not smooth enough, then the finite difference calculation of the states $\dot{x}$ and $\dot{\alpha}$ will be also affected. However, if the cut-off frequency is too low, then the filter will remove the actual system dynamics and the controller will be slow to react. Thus, our goal is to find the ideal cut-off frequency that removes the noise and smooths out $\dot{x}$ and $\dot{\alpha}$, but does not remove the actual system dynamics.
+\medskip
+
+We investigate the influence of the cut-off frequency on the behaviour of the system through multiple simulations and comparing them to each other. We would like to confirm the previous intuition and find an optimal cut-off frequency. Figure \ref{fig:real_freq_01}, \ref{fig:real_freq} and \ref{fig:real_freq_50} plot the evolution of the states and the control action of a set-point change of 10 cm for the realistic closed loop system with a controller computed by LQR with $Q_2$ and $R_2$ and cut-off frequencies, $f \in \{0.1, 0.3, 0.5, 1.0, 2.0, 5.0, 10.0, 50.0\}$ Hz. 
+\medskip
+
+From figure \ref{fig:real_freq}, we notice that for lower frequencies the system behaves with higher frequency and larger amplitude. Compare for $f = 0.3$ Hz to $f = 10$ Hz and notice the states $\alpha, \dot{\alpha}, \dot{x}$ and the control action. For $f = 10.0$ Hz, the system oscillates with a lower frequency and a smaller amplitude. For $f = 0.3$ Hz, the system oscillates with a high frequency and a large amplitude. Basically, the system reacts sluggish for higher cut-off frequencies and reacts more quickly. Physically, when the cart tracks the set-point, it will speed up then slow down and then speed up again. It is as if the cart is being operated by a drunk driver. This analogy is very fitting, since the filter is removing important dynamics of the system, it can be seen as an impaired receptor to the controller. From this point of view, we can also explain the many peaks (high frequency) and large amplitude. Only when the dynamics of the system are large enough will the controller be able to act upon it. However, once these dynamics are large, the controller will send a large control action to compensate for its delayed response. This in turn will momentarily stabilize the system, where again the controller will have to wait until the dynamics are sufficiently large enough to act upon. This explanation is supported by the evolution of the states in figure \ref{fig:real_freq}. For $f = 0.3$ the blue curve on the figure, we can see how the peaks and dips of $\alpha$ align in time with the peaks and dips of the control action. And the evolution $\alpha$ and $\dot{\alpha}$ is out of phase with $\dot{x}$.
+\medskip
+
+This behaviour is taken to its extreme in figure \ref{fig:real_freq_01} for $f = 0.1$ Hz. Once the system detects the velocity of $\alpha$, it is already too late. The controller will compensate with a control action that is too large for the actuator. The actuator will then saturate and the system will be unstable. 
+\medskip
+
+However, when the cut-off frequency is too high, we also observe high frequency oscillations, but with smaller amplitude. This is observed in figure \ref{fig:real_freq_50} for $f = 50$ Hz. As the cut-off frequency is too big, sensor noise is not adequately filtered and reaches the controller. The noise affects finite-difference calculations non-smooth trajectories. This is clearly visible by the trajectory of $\dot{x}$ and $\dot{\alpha}$. This in turn affects the controller performance. The system is overly responsive
 
 
 
@@ -634,7 +649,7 @@ However, when the cut-off frequency is too high, we also observe high frequency 
 
 \FloatBarrier
 
-\section{Proof of the Pudding} \label{labo}
+\section{Experimental Results} \label{labo}
 
 \subsection{Simulink Diagram}
 

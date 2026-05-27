@@ -68,7 +68,7 @@ x_ref = 0.1*ones(size(t));
 
 Q11s = [0.1 0.25 0.5 1 2 5 10 20];
 
-% Columns: Q11, RiseTime, SettlingTime, PeakTime, Overshoot
+% Columns: Q1, SettlingTime, max(abs(u))
 performance_Q11 = zeros(length(Q11s),3);
 
 figure(1); clf;
@@ -186,7 +186,7 @@ x_ref = 0.1*ones(size(t));
 
 Q22s = [1 4 8 16 32];
 
-% Columns: Q22, SettlingTime
+% Columns: Q2, SettlingTime, max(abs(u))
 performance_Q22 = zeros(length(Q22s),3);
 
 figure(1); clf;

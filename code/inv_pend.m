@@ -14,7 +14,10 @@ set(groot, 'defaultTextFontSize', 20);
 % Set global Font Size for Legends
 set(groot, 'defaultLegendFontSize', 14);
 
-%%
+set(groot, 'defaultLineLineWidth', 2);
+
+%% This linese of code are used to reveale all labels in the Simulink diagrams for plotting
+
 hb = find_system(gcs,'Type','Block');
 handles = cell2mat(get_param(hb,'Handle'));
 arrayfun(@(h) set_param(h,'ShowName','on'), handles);
@@ -33,10 +36,11 @@ m = 0.210;          % Rod mass [kg]
 r = 0.635 * 10^-2;  % Radius of motor output gear [m]
 g = 9.81;           % Acceleration due to gravity [m/s^2]
 
+
 % Filter
 Ts = 0.005;         % Sampling time [5ms]
-f = 5;           % 2.5 5 10 20 
-Wc = f*2*pi;            % Cut-off frequency [rad/s]
+f = 5;              % 2.5 5 10 20 [Hz]
+Wc = f*2*pi;        % Cut-off frequency [rad/s]
 
 
 % Quantizer
@@ -79,14 +83,76 @@ trans_zeros = tzero(sys); %no transmission zeros
 %% Closed Loop model with LQR
 
 %%%%%%%%%%%%%%%%%%%%%%% First Closed loop system experiments %%%%%%%%%%%%%%
-% Q and R given by KUL
-Q = diag([0.25 4 0 0]); R = 0.003;
+% Q and R obtained by trial and error experiments
+Q = diag([5 8 0 0]); R = 0.03;
+
 K = lqr(A, B, Q, R);
-sys_cl = ss(A - B*K, B, eye(4), zeros(4,1)); 
+
+sys_cl = ss(A - B*K, B*K(1), eye(4), zeros(4,1));  % BKxd -> BK(1) with a reference signal 
 
 % See the lqr_tuning.m for the plots of the tuning experiments
 
+% performance
+ 
+t = 0:0.001:5;              % Simulation time
+x_ref = 0.1*ones(size(t));  % setpoint
+
+% Columns: SettlingTime, maxangle, time of maxangle, maxControlVoltage
+performance = zeros(1,4);
+
+
+[~,t,x] = lsim(sys_cl, x_ref, t); % simulation 
+
+x_des = [x_ref; zeros(3,length(t))]; % desired state 
+u = -K*(x' - x_des); % control law
+u = u';
+
+% Step response characteristics for cart position x
+infox = stepinfo(x(:,1), t, x_ref(end));
+infoa = stepinfo(x(:,2), t, 0);
+
+performance(:) = [ ...
+    infox.SettlingTime, ...
+    max(x(:,2)), ...
+    t(x(:,2) == max(x(:,2))), ...
+    max(abs(u)), ...
+]
+
+figure(1); clf;
+tl = tiledlayout(4,1);
+
+ax1 = nexttile; hold on; grid on;
+ylabel('$x$ [m]','Interpreter','latex')
+
+ax2 = nexttile; hold on; grid on;
+ylabel('$\alpha$ [rad]','Interpreter','latex')
+
+ax3 = nexttile; hold on; grid on;
+ylabel('$\dot{x}$ [m/s]','Interpreter','latex')
+
+ax4 = nexttile; hold on; grid on;
+ylabel('$\dot{\alpha}$ [rad/s]','Interpreter','latex')
+xlabel('Time [s]')
+
+plot(ax1,t,x(:,1))
+plot(ax2,t,x(:,2))
+plot(ax3,t,x(:,3))
+plot(ax4,t,x(:,4))
+
+figure(2); clf;
+hold on; grid on;
+ylabel('$u$ [V]','Interpreter','latex')
+xlabel('Time [s]')
+plot(t,u)
+
+saveas(figure(1), '../report/figures/step_states_3.png')
+saveas(figure(2), '../report/figures/step_volt_3.png')
+
+
+
+
 %% Sensor error
+% Data obtained from the sensors on the setup
 
 a = open('angle_sensor_data.mat');
 a = a.angle_sensor_data;
@@ -98,7 +164,7 @@ plot(a_time, a_data);
 xlabel '$t$';
 ylabel '$V$';
 
-angle_noise_var = var(a_data)
+angle_noise_var = var(a_data);
 
 
 p = open('position_sensor_data.mat');
@@ -111,7 +177,7 @@ plot(p_time, p_data);
 xlabel '$t$';
 ylabel '$V$';
 
-position_noise_var = var(p_data)
+position_noise_var = var(p_data);
 
 
 %%

@@ -353,8 +353,109 @@ Figure \ref{fig:r} plots the results of varying $R \in \{0.001, 0.003, 0.005, 0.
 
 \FloatBarrier
 
-\subsection{Setpoint Change}
+\subsection{Setpoint Change on a Chosen Pair $Q$ and $R$}
 
+In this section we try and find a good pair, $Q$ and $R$, by adjusting the values. We start from the $Q_{\text{base}}$ and $R_{\text{base}}$ and perform updates. At each update, we observe the evolution of the states and the control action, and we check if the behaviour is preferable. If not we perform another update through the intuition built in the previous section and continue this process until we find a good pair, $Q$ and $R$, that satisfies the control goals. \\
+\\
+\begin{itemize}
+  \item Base: Figure \ref{fig:step_base} shows the response of the system to a setpoint change of 10 cm for $Q_{\text{base}}$ and $R_{\text{base}}$. The settling time of $x$ is not satisfactory. So we increase $Q_{1,1}$.
+  \begin{figure}[htbp]
+  \centering
+  \begin{subfigure}{0.45\textwidth}
+    \includegraphics[width=\linewidth]{figures/step_states_base.png}
+    \caption{States evolution.}
+  \end{subfigure}
+  \begin{subfigure}{0.45\textwidth}
+    \includegraphics[width=\linewidth]{figures/step_volt_base.png}
+    \caption{Control action evolution.}
+  \end{subfigure}
+  \caption{Response of the system to setpoint change for the closed loop system with a controller computed by LQR with $Q_{\text{base}}$ and $R_{\text{base}}$.}
+  \label{fig:step_base}
+\end{figure} 
+
+  \item $Q_{1,1}$ = 5: Figure \ref{fig:step_1} shows the response of the system to a set-point change of 10 cm for $Q_{1,1} = 5$. The settling time of $x$  is lower. However, the maximal angle has significantly increased and the control action is much larger in magnitude. We first fix the angle by increasing $Q_{2,2}$ to  . This will reduce the peak in the angle and will also reduce the peak in the control action. However, the main concern of the control action is that it starts at a very low value. This can only be increased through a different $R$ value.
+  
+  \begin{figure}[htbp]
+  \centering
+  \begin{subfigure}{0.45\textwidth}
+    \includegraphics[width=\linewidth]{figures/step_states_1.png}
+    \caption{States evolution.}
+  \end{subfigure}
+  \begin{subfigure}{0.45\textwidth}
+    \includegraphics[width=\linewidth]{figures/step_volt_1.png}
+    \caption{Control action evolution.}
+  \end{subfigure}
+  \caption{Response of the system to setpoint change for the closed loop system with a controller computed by LQR with $Q_{1,1} = 5$ and the rest of the values equal to the base values.}
+  \label{fig:step_1}
+\end{figure} 
+
+  \item $Q_{2,2}$ = 8: Figure \ref{fig:step_2} shows the response of the system to a set-point change for $Q_{2,2} = 8$ and $Q_{1,1} = 5$. The peak of the angle is reduced and the peak of the control action is smaller in magnitude. The settling time of $x$ did increase and the control action starts from the same value as the previous change. This is all observed from the figures and table \ref{tab:tuning_data} and is all as expected. The next step is to increase $R$ to increase the starting value of the control action and to reduce the peaks of the control action. The settling time of $x$ will increase as a result, but this is worth it to avoid saturation. For larger set-point changes, this will definitely be the case with the current controller. For smaller set-point changes, the current controller might be sufficient and increasing $R$ might not be necessary.
+
+  \begin{figure}[htbp]
+  \centering
+  \begin{subfigure}{0.45\textwidth}
+    \includegraphics[width=\linewidth]{figures/step_states_2.png}
+    \caption{States evolution.}
+  \end{subfigure}
+  \begin{subfigure}{0.45\textwidth}
+    \includegraphics[width=\linewidth]{figures/step_volt_2.png}
+    \caption{Control action evolution.}
+  \end{subfigure}
+  \caption{Response of the system to setpoint change for the closed loop system with a controller computed by LQR with $Q_{1,1} = 5, Q_{2,2} = 8$ and the rest of the values equal to the base values.}
+  \label{fig:step_2}
+\end{figure} 
+
+  \item $R = 0.03$: Figure \ref{fig:step_3} shows the response of the system to a set-point change for $R = 0.03$, $Q_{1,1} = 5$ and $Q_{2,2} = 8$. The control action starts at a higher value and the peaks of the control action are smaller in magnitude. Although, we expected the settling time of $x$ to increase, it actually decreased. It shows that even though we have a build a certain intuition on how to tune, it still is not a bad idea to have a try and see the results. 
+  
+  \begin{figure}[htbp]
+  \centering
+  \begin{subfigure}{0.45\textwidth}
+    \includegraphics[width=\linewidth]{figures/step_states_3.png}
+    \caption{States evolution.}
+  \end{subfigure}
+  \begin{subfigure}{0.45\textwidth}
+    \includegraphics[width=\linewidth]{figures/step_volt_3.png}
+    \caption{Control action evolution.}
+  \end{subfigure}
+  \caption{Response of the system to setpoint change for the closed loop system with a controller computed by LQR with $Q_{1,1} = 5, Q_{2,2} = 8, R = 0.03$ and the rest of the values equal to the base values.}
+  \label{fig:step_3}
+\end{figure} 
+
+  \item $R = 0.05$: Figure \ref{fig:step_4} shows the response of the system to a set-point change for $R = 0.05$, $Q_{1,1} = 5$ and $Q_{2,2} = 8$. This try was done to see the effect on the behaviour and this time the system behaves as expected. The control action and the angle have become smaller. The settling time of $x$ has increased.
+  
+  \begin{figure}[htbp]
+  \centering
+  \begin{subfigure}{0.45\textwidth}
+    \includegraphics[width=\linewidth]{figures/step_states_4.png}
+    \caption{States evolution.}
+  \end{subfigure}
+  \begin{subfigure}{0.45\textwidth}
+    \includegraphics[width=\linewidth]{figures/step_volt_4.png}
+    \caption{Control action evolution.}
+  \end{subfigure}
+  \caption{Response of the system to set-point change for the closed loop system with a controller computed by LQR with $Q_{1,1} = 5, Q_{2,2} = 8, R = 0.05$ and the rest of the values equal to the base values.}
+  \label{fig:step_4}
+\end{figure} 
+
+\end{itemize}
+
+
+\begin{table}[htbp]
+\centering
+    \begin{tabular}{l|cccc}
+        \toprule
+          Tuning Step  & $x$ settling time & Max $\alpha$ & Time of max $\alpha$ & Max absolute voltage\\
+        \midrule
+        base & 2.5913  &  0.0178  &  0.1600  &  0.9129 \\
+        $Q_{1,1} = 5$  &  1.1979  &  0.0618  &  0.1300  &  4.0825 \\
+        $Q_{2,2} = 8$  &  1.9355  &  0.0520  &  0.1210  &  4.0825 \\
+        $R = 0.03$  &  1.8226  &  0.0341  &  0.1780  &  1.2910 \\
+        $R = 0.05$  &  2.1590  &  0.0295  &  0.1900  &  1.0000 \\
+        \bottomrule
+    \end{tabular}
+    \caption{Tuning data for the set-point response of the system.}
+    \label{tab:tuning_data}
+\end{table}
 
 
 \section{A More Realistic Closed Loop Model} \label{realistic_closed_loop}

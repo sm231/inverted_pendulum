@@ -232,7 +232,9 @@ In this section, we are interested in finding a good pair, $Q$ and $R$, to compu
   \end{bmatrix}, \quad
   R_{\text{base}} = 0.003.
 \end{equation}
-For each experiment, we will plot the states, the control action, and the poles of the closed loop system. The poles of the closed loop system are the eigenvalues of $A-BK$. Since the system is minimal, the poles of the closed loop system are also the eigenvalues of $A-BK$. The poles of the closed loop system determine the stability and the transient response of the system. For a stable system, all poles must be in the left half-plane. The further left the poles are, the faster the transient response will be. However, if the poles are too far left, this may lead to a large control action that may exceed the physical limitations of the actuator. Therefore, we want to find a good balance between a fast transient response and a control action that remains within the physical limitations of the actuator.
+For each experiment, we will plot the states, the control action, and the poles of the closed loop system. The poles of the closed loop system are the eigenvalues of $A-BK$. Since the system is minimal, the poles of the closed loop system are also the eigenvalues of $A-BK$. The poles of the closed loop system determine the stability and the transient response of the system. For a stable system, all poles must be in the left half-plane. The further left the poles are, the faster the transient response will be. However, if the poles are too far left, this may lead to a large control action that may exceed the physical limitations of the actuator. Therefore, we want to find a good balance between a fast transient response and a control action that remains within the physical limitations of the actuator.\\
+\\
+The goal of the experiments is to build understanding on how each element of $Q$ and $R$ affects the system. This understanding will allow us to find a good pair, $Q$ and $R$, that satisfies the control goals. We will write down our observations and  discuss the trade-offs that are made when varying each element of $Q$ and $R$. We are also interested in the effective range of each element. This will provide intuition on how much we can vary each element without drastically affecting the system. We want to avoid blindly adjusting the elements of $Q$ and $R$ without understanding the effects of these adjustments. 
 
 \subsubsection{$Q_{1,1}$}
 
@@ -247,11 +249,17 @@ Figure \ref{fig:q22} plots the results of varying $Q_{2,2} \in \{1.0, 4.0, 8.0, 
 \\
 In general, increasing $Q_{2,2}$ has a stabilizing effect on the system. The peak of the control action becomes smaller and the states $\alpha, \dot{\alpha}, \dot{x}$ are less volatile. However, the downside is that the settling time of $x$ is increased. Whenever the controller is too aggressive, it is a good idea to increase $Q_{2,2}$ to stabilize the system and reduce the control action. If we compare how fast the settling time of $x$ decreases as $Q_{2,2}$ increases with $Q_{1,1}$ decreases, we can see that reducing the settling time of $x$ by increasing $Q_{1,1}$ is more effective than reducing the settling time of $x$ by increasing $Q_{2,2}$. Therefore, if we want to speed up the system, it is better to increase $Q_{1,1}$ than to increase $Q_{2,2}$. Conversely, if we are happy with a certain settling time of $x$ and we want to reduce the control action and in slow down the other states, it is better to increase $Q_{2,2}$ than to decrease $Q_{1,1}$.
 
-\subsubsection{$Q_{3,3}$}
+\subsubsection{$Q_{3,3}$ and $Q_{4,4}$}
 
-Figure \ref{fig:q33} plots the results of varying $Q_{3,3} \in \{0.0, 0.1, 0.5, 1.0, 2.0, 5.0, 10.0\}$
+Figure \ref{fig:q33} plots the results of varying $Q_{3,3} \in \{0.0, 0.1, 0.5, 1.0, 2.0, 5.0, 10.0\}$ and figure \ref{fig:q44} plots the results of varying $Q_{4,4} \in \{0.0, 0.1, 0.5, 1.0, 2.0, 5.0, 10.0\}$. The effects of varying $Q_{3,3}$ and $Q_{4,4}$ are similar as with $Q_{2,2}$. We notice from the figures, that increasing $Q_{3,3}$ and $Q_{4,4}$ reduces the overshoots of the states $\alpha, \dot{\alpha}$ and $\dot{x}$. The main effect of $Q_{3,3}$ is to supress the settling time of $\dot{x}$ and of $Q_{4,4}$ is to supress the settling time of $\dot{\alpha}$. This is observed in the figures. The control action reacts in the same way as in the experiment with $Q_{2,2}$. The voltage at $t = 0$ does not change when increasing $Q_{3,3}$ and $Q_{4,4}$, although the peaks do become smaller. The settling time of $x$ increases as $Q_{3,3}$ and $Q_{4,4}$ increases.\\
+\\
+The main difference between $Q_{2,2}$ with $Q_{3,3}$ and $Q_{4,4}$ can be seen in the evolution of the poles. We notice that increasing $Q_{2,2}$ moves the poles to the left. Whereas, increasing $Q_{3,3}$ or $Q_{4,4}$ moves the poles mainly towards the real axis. This means that increasing $Q_{3,3}$ and $Q_{4,4}$ has a bigger effect on the oscillatory behavior of the system than increasing $Q_{2,2}$. For now this is not a concern since the system has no noise present. The evolution is theoretically evolving smoothly towards the equilibrium point. However, in the real-life setup, there will be noise present and the system will not evolve smoothly towards the equilibrium point. The system will be perturbed by the noise and the steady state error will not be zero anymore. In this case, it is important to have a good damping of the system to reduce the oscillations around the equilibrium point. Therefore, increasing $Q_{3,3}$ and $Q_{4,4}$ might be a good idea to improve the damping of the system and reduce the oscillations around the equilibrium point. \\
+\\
+The difference between $Q_{3,3}$ and $Q_{4,4}$ is that increasing $Q_{3,3}$ has a bigger effect on the state $\dot{x}$, whereas increasing $Q_{4,4}$ has a bigger effect on the state $\dot{\alpha}$. We also observe that $Q_{3,3}$ is more sensitive to changes in the system than $Q_{4,4}$. This can be seen in the difference of the change of the state $x$ when increasing $Q_{3,3}$ versus $Q_{4,4}$. The settling time of $x$ when $Q_{3,3} = 10$ is much longer than when $Q_{4,4} = 10$. This observation also applies to the control action. So, increasing $Q_{3,3}$ must be done with caution as it can have great negative impact on the settling time of $x$, whilest varying $Q_{4,4}$ is more ideal for fine-tuning a desired behaviour.\\
 
+\subsubsection{$R$}
 
+Figure \ref{fig:r} plots the results of varying $R \in \{0.001, 0.003, 0.005, 0.01, 0.03, 0.05\}$. Increasing $R$ leads to a smaller control action. Although, the experiments for $Q_{2,2}, Q_{3,3}$ and $Q_{4,4}$ also exhibit this property, $R$ can reduce the Voltage at $t = 0$. Of course the downside is that the system becomes less responsive. The settling time of $x$ can be seen to increase as $R$ increases and the overshoot of the remaining states diminishes. From the plot of the poles, we notice that the main effect of $R$ is to move the non-dominant poles towards the origin.\\
 
 \begin{figure}[htbp]
   \centering
@@ -347,7 +355,7 @@ Figure \ref{fig:q33} plots the results of varying $Q_{3,3} \in \{0.0, 0.1, 0.5, 
 
 \subsection{Setpoint Change}
 
-nope hehehe
+
 
 \section{A More Realistic Closed Loop Model} \label{realistic_closed_loop}
 

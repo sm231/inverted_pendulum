@@ -355,10 +355,10 @@ Figure \ref{fig:r} plots the results of varying $R \in \{0.001, 0.003, 0.005, 0.
 
 \subsection{Setpoint Change on a Chosen Pair $Q$ and $R$}
 
-In this section we try and find a good pair, $Q$ and $R$, by adjusting the values. We start from the $Q_{\text{base}}$ and $R_{\text{base}}$ and perform updates. At each update, we observe the evolution of the states and the control action, and we check if the behaviour is preferable. If not we perform another update through the intuition built in the previous section and continue this process until we find a good pair, $Q$ and $R$, that satisfies the control goals. \\
+In this section we try and find a good pair, $Q$ and $R$, by adjusting the values. A good value is one that provides a satisfactory behaviour according to the control objectives. The system is validated by observing the system's response to a set-point change of 10 cm. We start from the $Q_{\text{base}}$ and $R_{\text{base}}$ and perform updates. At each update, we observe the evolution of the states and the control action, and we check if the behaviour is satisfactory. If the systen is not satisfactory, we perform another update through the intuition built in the previous section and continue this process until we find a good pair, $Q$ and $R$, that satisfy the control goals. Table \ref{tab:tuning_data} provides some data on the set-point behaviour of the systems at each update.\\
 \\
-\begin{itemize}
-  \item Base: Figure \ref{fig:step_base} shows the response of the system to a setpoint change of 10 cm for $Q_{\text{base}}$ and $R_{\text{base}}$. The settling time of $x$ is not satisfactory. So we increase $Q_{1,1}$.
+\begin{enumerate}
+  \item Base: Figure \ref{fig:step_base} shows the response of the system to a set-point change of 10 cm for $Q_{\text{base}}$ and $R_{\text{base}}$. The settling time of $x$ is not satisfactory. So, we increase $Q_{1,1}$.
   \begin{figure}[htbp]
   \centering
   \begin{subfigure}{0.45\textwidth}
@@ -436,27 +436,36 @@ In this section we try and find a good pair, $Q$ and $R$, by adjusting the value
   \caption{Response of the system to set-point change for the closed loop system with a controller computed by LQR with $Q_{1,1} = 5, Q_{2,2} = 8, R = 0.05$ and the rest of the values equal to the base values.}
   \label{fig:step_4}
 \end{figure} 
-\end{itemize}
-
+\end{enumerate}
 \begin{table}[htbp]
 \centering
     \begin{tabular}{l|cccc}
         \toprule
-          Tuning Step  & $x$ settling time & Max $\alpha$ & Time of max $\alpha$ & Max absolute voltage\\
+          Tuning Step  & $x$ Settling Time & Max $\alpha$ & Time of Max $\alpha$ & Max Absolute Voltage\\
         \midrule
-        base & 2.5913  &  0.0178  &  0.1600  &  0.9129 \\
-        $Q_{1,1} = 5$  &  1.1979  &  0.0618  &  0.1300  &  4.0825 \\
-        $Q_{2,2} = 8$  &  1.9355  &  0.0520  &  0.1210  &  4.0825 \\
-        $R = 0.03$  &  1.8226  &  0.0341  &  0.1780  &  1.2910 \\
-        $R = 0.05$  &  2.1590  &  0.0295  &  0.1900  &  1.0000 \\
+        1. Base & 2.5913  &  0.0178  &  0.1600  &  0.9129 \\
+        2. $Q_{1,1} = 5$  &  1.1979  &  0.0618  &  0.1300  &  4.0825 \\
+        3. $Q_{2,2} = 8$  &  1.9355  &  0.0520  &  0.1210  &  4.0825 \\
+        4. $R = 0.03$  &  1.8226  &  0.0341  &  0.1780  &  1.2910 \\
+        5. $R = 0.05$  &  2.1590  &  0.0295  &  0.1900  &  1.0000 \\
         \bottomrule
     \end{tabular}
     \caption{Tuning data for the set-point response of the system.}
     \label{tab:tuning_data}
 \end{table}
+The values $Q_{3,3}$ and $Q_{4,4}$ are left as zero. Currently, the behaviour of the system satisfies the design requirements. In the next section, a more realistic closed loop model will be presented and the design will be finalized. So, the parameters for the LQR becomes
 
-
-
+\begin{equation}
+  Q_1 = 
+  \begin{bmatrix}
+     5 && 0 && 0 && 0 \\
+    0 && 8 && 0 && 0 \\
+    0 && 0 && 0 && 0 \\
+    0 && 0 && 0 && 0 \\
+  \end{bmatrix}, \quad
+  R_1 = 0.05.
+\end{equation}
+We chose $R_1 = 0.05$ as the settling time of 2.1590 seconds is for now good enough and will be adjusted in the next sections. More importantly, the angle deviates less and the control action is smaller in magnitude than with $R_1 = 0.03$. 
 
 \section{A More Realistic Closed Loop Model} \label{realistic_closed_loop}
 
@@ -521,7 +530,55 @@ The remaining blocks are
 
 \FloatBarrier
 \subsection{Setpoint Change}
+
+Figure \ref{fig:real1} plots the response of the system to a set-point change of 10 cm for the realistic closed loop system with a controller computed by LQR with $Q_1$ and $R_1$ and a cut-off frequency of 2 Hz. Compared to figure \ref{fig:step_4}, the states and the control action evolve differently. The trajectories are more oscillatory and the settling time of $x$ is longer. Most notably, the other states, $\alpha, \dot{\alpha}$ and $\dot{x}$, have increased in value. All of these observations indicate the we need increase $Q_{3,3}$ and $Q_{4,4}$. We expect that increasing $Q_{3,3}$ and $Q_{4,4}$ will repress the oscillations and reduce the peaks of the states $\alpha, \dot{\alpha}$ and $\dot{x}$. The control action will also be reduced in magnitude. The settling time of $x$ will increase as a result. 
+ \begin{figure}[htbp]
+  \centering
+  \begin{subfigure}{0.45\textwidth}
+    \includegraphics[width=\linewidth]{figures/real_states1.png}
+    \caption{States evolution.}
+  \end{subfigure}
+  \begin{subfigure}{0.45\textwidth}
+    \includegraphics[width=\linewidth]{figures/real_volt1.png}
+    \caption{Control action evolution.}
+  \end{subfigure}
+  \caption{Response of the system to a set-point change of 10 cm for the realistic closed loop system with a controller computed by LQR with $Q_1$ and $R_1$ and a cut-off frequency of 2 Hz. The settling time of $x$ is 2.6164, the maximum angle is 0.0537 radians and the maximum absolute voltage is 1.5744 Volts.}
+  \label{fig:real1}
+\end{figure} 
+
+\FloatBarrier
+In figure \ref{fig:real2}, we plot the evolution of the states and the control action for 
+
+\begin{equation}
+  Q_2 = 
+  \begin{bmatrix}
+     5.0 && 0 && 0 && 0 \\
+    0 && 8.0  && 0 && 0 \\
+    0 && 0 && 1.0 && 0 \\
+    0 && 0 && 0 && 3.0 \\
+  \end{bmatrix}, \quad
+  R_2 = 0.03.
+\end{equation}
+Figure \ref{fig:real2} realises the expected behaviour. The states and the control action are less oscillatory and the peaks of the states $\alpha, \dot{\alpha}$ and $\dot{x}$ are reduced. The peak of the control action is also smaller in magnitude. The settling time of $x$ has increased as a result. The settling time of $x$ is now 3.8301 seconds. This could be due to the filter having a large cutoff frequency. A large cutoff frequency can remove the actual system dynamcs, making the controller more slow. If the controller is not fast enough, in the real setup, $Q_{1,1}$ will be increased. The maximum angle has decreased from 0.0537 radians to 0.0152 radians and the maximum absolute voltage has decreased from 1.5744 Volts to 1.2910 Volts. Overall, these are good improvements compared to figure \ref{fig:real1}, but the controller seems to be too slow. 
+
+\begin{figure}[htbp]
+  \centering
+  \begin{subfigure}{0.45\textwidth}
+    \includegraphics[width=\linewidth]{figures/real_states2.png}
+    \caption{States evolution.}
+  \end{subfigure}
+  \begin{subfigure}{0.45\textwidth}
+    \includegraphics[width=\linewidth]{figures/real_volt2.png}
+    \caption{Control action evolution.}
+  \end{subfigure}
+  \caption{Response of the system to a set-point change of 10 cm for the realistic closed loop system with a controller computed by LQR with $Q_2$ and $R_2$ and a cut-off frequency of 2 Hz. The 5\% threshold settling time of $x$ is 3.8301, the maximum angle is 0.0152 radians and the maximum absolute voltage is 1.2910 Volts.}
+  \label{fig:real2}
+\end{figure} 
+
+
 \subsection{Influence of the Cut-Off Frequency}
+
+
 
 \section{Proof of the Pudding} \label{labo}
 
@@ -537,6 +594,11 @@ Figure \ref{fig:template} provides the simulink diagram that is used to control 
 \end{figure}
 
 \subsection{Setpoint Tracking}
+
+
+
+
+
 \subsection{Disturbance Rejection}
 \subsection{Cut-Off Frequency}
 

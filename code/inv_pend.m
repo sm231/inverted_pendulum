@@ -39,7 +39,7 @@ g = 9.81;           % Acceleration due to gravity [m/s^2]
 
 % Filter
 Ts = 0.005;         % Sampling time [5ms]
-f = 5;              % 2.5 5 10 20 [Hz]
+f = 5;              % 2.5 5 10 20 [Hz]  !!! 5 is used in real setup !!!
 Wc = f*2*pi;        % Cut-off frequency [rad/s]
 
 
@@ -109,7 +109,6 @@ u = u';
 
 % Step response characteristics for cart position x
 infox = stepinfo(x(:,1), t, x_ref(end));
-infoa = stepinfo(x(:,2), t, 0);
 
 performance(:) = [ ...
     infox.SettlingTime, ...
@@ -145,8 +144,8 @@ ylabel('$u$ [V]','Interpreter','latex')
 xlabel('Time [s]')
 plot(t,u)
 
-saveas(figure(1), '../report/figures/step_states_3.png')
-saveas(figure(2), '../report/figures/step_volt_3.png')
+%saveas(figure(1), '../report/figures/step_states_3.png')
+%saveas(figure(2), '../report/figures/step_volt_3.png')
 
 
 
@@ -179,10 +178,85 @@ ylabel '$V$';
 
 position_noise_var = var(p_data);
 
+%%
+
+%% Plots for report section "realistic closed loop model"
+
+% Q and R from closed loop tuning
+% real_states1 
+% real_volt1
+
+
+Q = diag([5 8 1 3]); R = 0.03;
+K = lqr(A, B, Q, R);
+
+f = 2; Wc = f*2*pi; 
+
+t = 0:Ts:5;
+
+%states = out.real_states;
+%save('real_states2.mat', 'states')
+%voltage = out.real_volt;
+%save('real_volt2.mat', 'voltage')
+
+% 1 -> LQR with Q1 and R1
+% 2 -> LQR with Q2 and R2
+states = open("real_states2.mat"); % choose 1 or 2 for correct dataset
+voltage = open("real_volt2.mat"); % choose 1 or 2 for correct dataset
+states = states.states;
+voltage = voltage.voltage;
+
+real_x = reshape(states.Data, 4, numel(t));
+
+real_u = reshape(voltage.Data, 1, numel(t));
+
+
+figure(1); clf;
+tl = tiledlayout(4,1);
+
+ax1 = nexttile; hold on; grid on;
+ylabel('$x$ [m]','Interpreter','latex')
+
+ax2 = nexttile; hold on; grid on;
+ylabel('$\alpha$ [rad]','Interpreter','latex')
+
+ax3 = nexttile; hold on; grid on;
+ylabel('$\dot{x}$ [m/s]','Interpreter','latex')
+
+ax4 = nexttile; hold on; grid on;
+ylabel('$\dot{\alpha}$ [rad/s]','Interpreter','latex')
+xlabel('Time [s]')
+
+plot(ax1,t,real_x(1,:))
+plot(ax2,t,real_x(2,:))
+plot(ax3,t,real_x(3,:))
+plot(ax4,t,real_x(4,:))
+
+figure(2); clf;
+hold on; grid on;
+ylabel('$u$ [V]','Interpreter','latex')
+xlabel('Time [s]')
+plot(t,real_u)
+
+% Step response characteristics for cart position x
+infox = stepinfo(real_x(1,:), t, 0, 0.05);
+
+performance(:) = [ ...
+    infox.SettlingTime, ...
+    max(real_x(2,:)), ...
+    t(real_x(2,:) == max(real_x(2,:))), ...
+    max(abs(real_u)), ...
+]
+
+saveas(figure(1), '../report/figures/real_states2.png')
+saveas(figure(2), '../report/figures/real_volt2.png');
 
 %%
 %%%%%%%%%%%%%%%%%%% Realistic Closed loop system experiments %%%%%%%%%%%%%%
 % All tests were done with f = 5;
+
+f = 2; Wc = f*2*pi; 
+
 % Q_base (best) f = 5;
 Q = diag([10 15 2 6]); R = 0.03;       
 
@@ -209,7 +283,9 @@ Q = diag([10 15 2 6]); R = 0.03;
 K = lqr(A, B, Q, R);
     
 % Closed loop system
-sys_cl = ss(A - B*K, B, eye(4), zeros(4,1)); 
+sys_cl = ss(A - B*K, B, eye(4), zeros(4,1));
+
+
 
 
 %% Performance

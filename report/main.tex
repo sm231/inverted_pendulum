@@ -578,7 +578,61 @@ Figure \ref{fig:real2} realises the expected behaviour. The states and the contr
 
 \subsection{Influence of the Cut-Off Frequency}
 
+The filter is placed directly after the sensor measurements. Its role is to remove the noise that orginated from the sensors and smooth out the outgoing signal. If the outgoing signal is not smooth enough, then the finite difference calculation of the states $\dot{x}$ and $\dot{\alpha}$ will be also affected. However, if the cut-off frequency is too low, then the filter will remove the actual system dynamics and the controller will be slow to react. Thus, our goal is to find the ideal cut-off frequency that removes the noise and smooths out $\dot{x}$ and $\dot{\alpha}$, but does not remove the actual system dynamics. \\
+\\
+We investigate the influence of the cut-off frequency on the behaviour of the system through multiple simulations and comparing them to each other. We would like to confirm the previous intuition and find an optimal cut-off frequency. Figure \ref{fig:real_freq_01}, \ref{fig:real_freq} and \ref{fig:real_freq_50} plot the evolution of the states and the control action of a set-point change of 10 cm for the realistic closed loop system with a controller computed by LQR with $Q_2$ and $R_2$ and cut-off frequencies, $f \in \{0.1, 0.3, 0.5, 1.0, 2.0, 5.0, 10.0, 50.0\}$ Hz. \\
+\\
+From figure \ref{fig:real_freq}, we notice that for lower frequencies the system behaves with higher frequency and larger amplitude. Compare for $f = 0.3$ Hz to $f = 10$ Hz and notice the states $\alpha, \dot{\alpha}, \dot{x}$ and the control action. For $f = 10.0$ Hz, the system oscillates with a lower frequency and a smaller amplitude. For $f = 0.3$ Hz, the system oscillates with a high frequency and a large amplitude. Basically, the system reacts sluggish for higher cut-off frequencies and reacts more quickly. Physically, when the cart tracks the set-point, it will speed up then slow down and then speed up again. It is as if the cart is being operated by a drunk driver. This analogy is very fitting, since the filter is removing important dynamics of the system, it can be seen as an impaired receptor to the controller. From this point of view, we can also explain the many peaks (high frequency) and large amplitude. Only when the dynamics of the system are large enough will the controller be able to act upon it. However, once these dynamics are large, the controller will send a large control action to compensate for its delayed response. This in turn will momentarily stabilize the system, where again the controller will have to wait until the dynamics are sufficiently large enough to act upon. This explanation is supported by the evolution of the states in figure \ref{fig:real_freq}. For $f = 0.3$ the blue curve on the figure, we can see how the peaks and dips of $\alpha$ align in time with the peaks and dips of the control action. And the evolution $\alpha$ and $\dot{\alpha}$ is out of phase with $\dot{x}$.\\
+\\
+This behaviour is taken to its extreme in figure \ref{fig:real_freq_01} for $f = 0.1$ Hz. Once the system detects the velocity of $\alpha$, it is already too late. The controller will compensate with a control action that is too large for the actuator. The actuator will then saturate and the system will be unstable. \\
+\\
+However, when the cut-off frequency is too high, we also observe high frequency oscillations, but with smaller amplitude. This is observed in figure \ref{fig:real_freq_50} for $f = 50$ Hz. As the cut-off frequency is too big, sensor noise is not adequately filtered and reaches the controller. The noise affects finite-difference calculations non-smooth trajectories. This is clearly visible by the trajectory of $\dot{x}$ and $\dot{\alpha}$. This in turn affects the controller performance. The system is overly responsive\\
 
+
+
+\begin{figure}[htbp]
+  \centering
+  \begin{subfigure}{0.45\textwidth}
+    \includegraphics[width=\linewidth]{figures/real_freq_states_01.png}
+    \caption{States evolution.}
+  \end{subfigure}
+  \begin{subfigure}{0.45\textwidth}
+    \includegraphics[width=\linewidth]{figures/real_freq_volt_01.png}
+    \caption{Control action evolution.}
+  \end{subfigure}
+  \caption{Response of the system to a set-point change of 10 cm for the realistic closed loop system with a controller computed by LQR with $Q_2$ and $R_2$ and a cut-off frequency of 0.1 Hz.}
+  \label{fig:real_freq_01}
+\end{figure} 
+
+\begin{figure}[htbp]
+  \centering
+  \begin{subfigure}{0.45\textwidth}
+    \includegraphics[width=\linewidth]{figures/real_freq_states.png}
+    \caption{States evolution.}
+  \end{subfigure}
+  \begin{subfigure}{0.45\textwidth}
+    \includegraphics[width=\linewidth]{figures/real_freq_volt.png}
+    \caption{Control action evolution.}
+  \end{subfigure}
+  \caption{Response of the system to a set-point change of 10 cm for the realistic closed loop system with a controller computed by LQR with $Q_2$ and $R_2$ and cut-off frequencies, $f \in \{0.3, 0.5, 1.0, 2.0, 5.0, 10.0\}$.}
+  \label{fig:real_freq}
+\end{figure} 
+
+\begin{figure}[htbp]
+  \centering
+  \begin{subfigure}{0.45\textwidth}
+    \includegraphics[width=\linewidth]{figures/real_freq_states_50.png}
+    \caption{States evolution.}
+  \end{subfigure}
+  \begin{subfigure}{0.45\textwidth}
+    \includegraphics[width=\linewidth]{figures/real_freq_volt_50.png}
+    \caption{Control action evolution.}
+  \end{subfigure}
+  \caption{Response of the system to a set-point change of 10 cm for the realistic closed loop system with a controller computed by LQR with $Q_2$ and $R_2$ and a cut-off frequency of 50 Hz.}
+  \label{fig:real_freq_50}
+\end{figure} 
+
+\FloatBarrier
 
 \section{Proof of the Pudding} \label{labo}
 

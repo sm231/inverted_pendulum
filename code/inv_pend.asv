@@ -187,29 +187,27 @@ position_noise_var = var(p_data);
 % real_volt1
 
 
-%Q = diag([5 8 1 3]); R = 0.03;
-%K = lqr(A, B, Q, R);
+Q = diag([5 8 1 3]); R = 0.03;
+K = lqr(A, B, Q, R);
 
-%f = 2; Wc = f*2*pi; 
+f = 2; Wc = f*2*pi; 
 
+t = 0:Ts:5;
 
-%states = out.real_states;
-%save('real_states2.mat', 'states')
-%voltage = out.real_volt;
-%save('real_volt2.mat', 'voltage')
-
-% 1 -> LQR with Q1 and R1
-% 2 -> LQR with Q2 and R2
-states = open("real_states2.mat"); % choose 1 or 2 for correct dataset
-voltage = open("real_volt2.mat"); % choose 1 or 2 for correct dataset
-states = states.states;
-voltage = voltage.voltage;
+states = out.real_states;
+save('real_states2.mat', 'states')
+voltage = out.real_volt;
+save('real_volt2.mat', 'voltage')
+%states = open("real_states1.mat");
+%voltage = open("real_volt1.mat");
+%states = states.states;
+%voltage = voltage.voltage;
 
 real_x = reshape(states.Data, 4, numel(t));
 
 real_u = reshape(voltage.Data, 1, numel(t));
 
-t = 0:Ts:5;
+
 figure(1); clf;
 tl = tiledlayout(4,1);
 
@@ -247,8 +245,8 @@ performance(:) = [ ...
     max(abs(real_u)), ...
 ]
 
-%saveas(figure(1), '../report/figures/real_states2.png')
-%saveas(figure(2), '../report/figures/real_volt2.png');
+saveas(figure(1), '../report/figures/real_states1.png')
+saveas(figure(2), '../report/figures/real_volt1.png');
 
 %%
 %%%%%%%%%%%%%%%%%%% Realistic Closed loop system experiments %%%%%%%%%%%%%%
@@ -286,8 +284,40 @@ sys_cl = ss(A - B*K, B, eye(4), zeros(4,1));
 
 
 
-%% Cut-off frequency
 
+%% Performance
 
+% Step response of the closed loop system
+[x, t] = step(sys_cl, 5); 
 
+subplot(2,1,1);
+plot(t, x(:,1)); title('Cart Position (m)'); ylabel('meters');
+grid on;
+subplot(2,1,2);
+plot(t, x(:,2)); title('Pendulum Angle (rad)'); ylabel('radians');
+grid on;
+
+% Performance: RiseTime, SettlingTime, PeakTime, Overshoot, ...
+perf = stepinfo(sys_cl);
+
+% Voltage
+u = zeros(length(t), 1);
+for i = 1:length(t)
+    u(i) = -K * x(i,:)';
+end
+
+figure;
+plot(t, u, 'b', 'LineWidth', 2);
+hold on; grid on;
+xlabel 'Time [sec]';
+ylabel 'Voltage [V]';
+
+% Closed loop poles 
+poles_cl = eig(A-B*K)
+pzmap(sys_cl)
+
+% log how the dominant poles evolve as the Q and R matrices are tweaked 
+% Same with performance stats of the step response
+
+%% Realistic Simulation
 

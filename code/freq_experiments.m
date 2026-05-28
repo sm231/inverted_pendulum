@@ -60,29 +60,30 @@ Q = diag([5 8 1 3]); R = 0.03;
 K = lqr(A, B, Q, R);
 
 
-f = 50;           % 0.1 0.3 0.5 1 2 5 10 20 50
+f = 5;           % 0.1 0.3 0.5 1 2 5 10 20 50
 Wc = f*2*pi;            % Cut-off frequency [rad/s]
 
 %%
 
 
-%states = out.real_states;
-%save('real_freq_data/real_freq_50_states.mat', 'states')
-%voltage = out.real_volt;
-%save('real_freq_data/real_freq_50_volt.mat', 'voltage')
+states = out.real_states;
+save('data/real_Q2_states.mat', 'states')
+voltage = out.real_volt;
+save('data/real_Q2_volt.mat', 'voltage')
 
 %%
 
-states = open("real_freq_data/real_freq_0_1_states.mat"); 
-voltage = open("real_freq_data/real_freq_0_1_volt.mat"); 
+states = open("data/real_Q2_states.mat"); 
+voltage = open("data/real_Q2_volt.mat"); 
 states = states.states;
 voltage = voltage.voltage;
+
+t = 0:Ts:5;
 
 real_x = reshape(states.Data, 4, numel(t));
 
 real_u = reshape(voltage.Data, 1, numel(t));
 
-t = 0:Ts:5;
 figure(1); clf;
 tl = tiledlayout(4,1);
 
@@ -120,8 +121,8 @@ performance(:) = [ ...
     max(abs(real_u)), ...
 ]
 
-%saveas(figure(1), '../report/figures/real_freq_states_01.png')
-%saveas(figure(2), '../report/figures/real_freq_volt_01.png');
+%saveas(figure(1), '../report/figures/real_Q2_states.png')
+%saveas(figure(2), '../report/figures/real_Q2_volt.png');
 
 %%
 

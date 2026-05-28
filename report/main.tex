@@ -601,7 +601,10 @@ From figure \ref{fig:real_freq}, we notice that for lower frequencies the system
 This behaviour is taken to its extreme in figure \ref{fig:real_freq_01} for $f = 0.1$ Hz. Once the system detects the velocity of $\alpha$, it is already too late. The controller will compensate with a control action that is too large for the actuator. The actuator will then saturate and the system will be unstable. 
 \medskip
 
-However, when the cut-off frequency is too high, we also observe high frequency oscillations, but with smaller amplitude. This is observed in figure \ref{fig:real_freq_50} for $f = 50$ Hz. As the cut-off frequency is too big, sensor noise is not adequately filtered and reaches the controller. The noise affects finite-difference calculations non-smooth trajectories. This is clearly visible by the trajectory of $\dot{x}$ and $\dot{\alpha}$. This in turn affects the controller performance. The system is overly responsive
+However, when the cut-off frequency is too high, we also observe high frequency oscillations, but with smaller amplitude. This is observed in figure \ref{fig:real_freq_50} for $f = 50$ Hz. As the cut-off frequency is too big, sensor noise is not adequately filtered and reaches the controller. The noise affects finite-difference calculations non-smooth trajectories. This is clearly visible by the trajectory of $\dot{x}$ and $\dot{\alpha}$. This in turn affects the controller performance. The system is overly responsive.
+\medskip
+
+Overall, the cut-off frequency of 5 Hz seems to be the best choice. It is low enough to filter out the noise and smooth out the trajectories of $\dot{x}$ and $\dot{\alpha}$. It does not react sluggishly and does not remove the actual system dynamics.
 
 
 
@@ -629,7 +632,7 @@ However, when the cut-off frequency is too high, we also observe high frequency 
     \includegraphics[width=\linewidth]{figures/real_freq_volt.png}
     \caption{Control action evolution.}
   \end{subfigure}
-  \caption{Response of the system to a set-point change of 10 cm for the realistic closed loop system with a controller computed by LQR with $Q_2$ and $R_2$ and cut-off frequencies, $f \in \{0.3, 0.5, 1.0, 2.0, 5.0, 10.0\}$.}
+  \caption{Response of the system to a set-point change of 10 cm for the realistic closed loop system with a controller computed by LQR with $Q_2$ and $R_2$ and cut-off frequencies, $f \in \{0.3, 0.5, 1.0, 2.0, 5.0, 10.0\}$ Hz.}
   \label{fig:real_freq}
 \end{figure} 
 
@@ -664,16 +667,130 @@ Figure \ref{fig:template} provides the simulink diagram that is used to control 
 
 \subsection{Setpoint Tracking}
 
+% plots
+% retuning
+% steady state error? reason?
 
+The first time we tried to run the controller on the real setup, the system was unstable. We noticed that the controller was too slow to react. This led to retuning the controller by increasing $Q_{1,1}$. As a consequence, we also had to adjust the remaining parameters to exhibit a good behaviour. In the beginning of this project, we were mostly concerned with the settling time of $x$. However, we understood that visually, the settling time of $\alpha$ was more important and the smoothness of the cart movement was also important. We also opted for a more aggressive control strategy, as this gave us the desired performance. The final parameters are
 
+\begin{equation}
+  Q_3 = 
+  \begin{bmatrix}
+     10.0 && 0 && 0 && 0 \\
+    0 && 15.0  && 0 && 0 \\
+    0 && 0 && 2.0 && 0 \\
+    0 && 0 && 0 && 6.0 \\
+  \end{bmatrix}, \quad
+  R_3 = 0.03.
+\end{equation}
 
+We compare the resposnse of the real setup to the simulation with a set-point change of 30 cm. We were eager design a controller that can manage large set-point changes. Consequently, this lead to an aggressive controller. Figure \ref{fig:setup_Q3} plots the response of the system to a set-point change of 30 cm with a controller computed by LQR with $Q_3$ and $R_3$ and a cut-off frequency of 5 Hz. The plots follow the characteristic trajectory. To realise a set-point change to the left, the cart will first move to the right. This will cause the rod to fall to the right. The controller will then apply a large control action to the left, such that it can catch the rod before it completely destabilizes. As a result, the system has performed the set-point change successfully. 
+\medskip
+
+We compare the behaviour to the simulation of the realistic closed loop system with a controller computed by LQR with $Q_2$ and $R_2$ and a cut-off frequency of 5 Hz. The response is plotted in figure \ref{fig:real_Q2}. The states evolve in a similar way, but the settling time of $x$ is much shorted in the real-setup. The maximum angle is similar to the simulation. We performed the angle and position offset inside the constant block of the simulink diagram. This is the reason why the states do not start and settle at zero. From the control action, we can see how the new controller is more aggressive than the previous controller. The control action of the new controller starts at a lower value and shoots up to a higher value. The frequency and thje amplitude of the control action are also higher. Although, this might look concerning, the system is able to handle this control action and successfully performs the set-point change.   
+
+\begin{figure}[htbp]
+  \centering
+  \begin{subfigure}{0.45\textwidth}
+    \includegraphics[width=\linewidth]{figures/setup_Q3_states.png}
+    \caption{States evolution.}
+  \end{subfigure}
+  \begin{subfigure}{0.45\textwidth}
+    \includegraphics[width=\linewidth]{figures/setup_Q3_volt.png}
+    \caption{Control action evolution.}
+  \end{subfigure}
+  \caption{Experimental results for the setup with a set-point change of 30 cm with a controller computed by LQR with $Q_3$ and $R_3$ and a cut-off frequency of 5 Hz.}
+  \label{fig:setup_Q3}
+\end{figure} 
+
+\begin{figure}[htbp]
+  \centering
+  \begin{subfigure}{0.45\textwidth}
+    \includegraphics[width=\linewidth]{figures/real_Q2_states.png}
+    \caption{States evolution.}
+  \end{subfigure}
+  \begin{subfigure}{0.45\textwidth}
+    \includegraphics[width=\linewidth]{figures/real_Q2_volt.png}
+    \caption{Control action evolution.}
+  \end{subfigure}
+  \caption{Response of the system to a set-point change of 30 cm for the realistic closed loop system with a controller computed by LQR with $Q_2$ and $R_2$ and a cut-off frequency of 5 Hz.}
+  \label{fig:real_Q2}
+\end{figure} 
+
+\FloatBarrier
 
 \subsection{Disturbance Rejection}
+
+In figure \ref{fig:setup_disturbance}, we perform 4 disturbances on the system. The disturbance is applied by pushing the rod to the right or the left. The controller is able to reject the disturbance and bring the system back to the set-point. It does so by first catching the disturbance and then gradually bringing the system back to the set-point. The fourth disturbance is the largest and the controller manages to reject it as well. We do notice that the control action does momentarily saturate. However, this only happens for a very short time period and does not affect the stability.  
+
+\begin{figure}[htbp]
+  \centering
+  \begin{subfigure}{0.45\textwidth}
+    \includegraphics[width=\linewidth]{figures/setup_disturbance_states.png}
+    \caption{States evolution.}
+  \end{subfigure}
+  \begin{subfigure}{0.45\textwidth}
+    \includegraphics[width=\linewidth]{figures/setup_disturbance_volt.png}
+    \caption{Control action evolution.}
+  \end{subfigure}
+  \caption{Experimental results for the setup with multiple disturbances with a controller computed by LQR with $Q_3$ and $R_3$ and a cut-off frequency of 5 Hz.}
+  \label{fig:setup_disturbance}
+\end{figure} 
+
+\FloatBarrier
+
 \subsection{Cut-Off Frequency}
+
+We perform experiments with a cut-off frequency of 2.5 Hz and 10 Hz. The results are plotted in figures \ref{fig:setup_cfreq_2_5} and \ref{fig:setup_cfreq_10} and we compare them to figure \ref{fig:setup_Q3}. As expected from the simulations, for $f = 2.5$ Hz the system has lower control action oscillations but the response of the system is slower than with $f = 5$ Hz. For $f = 10$ Hz, the system has higher control action oscillations and the response of the system is faster than with $f = 5$ Hz. The frequency and the amplitude for $f = 10$ Hz are excessively high and not recommended to use. The system shows overall good behaviour for $f = 2.5$ Hz and if performance is not the main concern, but rather a less jerky control action, then $f = 2.5$ Hz is a good choice. 
+
+\begin{figure}[htbp]
+  \centering
+  \begin{subfigure}{0.45\textwidth}
+    \includegraphics[width=\linewidth]{figures/setup_cfreq_2_5_states.png}
+    \caption{States evolution.}
+  \end{subfigure}
+  \begin{subfigure}{0.45\textwidth}
+    \includegraphics[width=\linewidth]{figures/setup_cfreq_2_5_volt.png}
+    \caption{Control action evolution.}
+  \end{subfigure}
+  \caption{Experimental results for the setup to a set-point change of 30 cm with a controller computed by LQR with $Q_3$ and $R_3$ and a cut-off frequency of 2.5 Hz.}
+  \label{fig:setup_cfreq_2_5}
+\end{figure} 
+
+\begin{figure}[htbp]
+  \centering
+  \begin{subfigure}{0.45\textwidth}
+    \includegraphics[width=\linewidth]{figures/setup_cfreq_10_states.png}
+    \caption{States evolution.}
+  \end{subfigure}
+  \begin{subfigure}{0.45\textwidth}
+    \includegraphics[width=\linewidth]{figures/setup_cfreq_10_volt.png}
+    \caption{Control action evolution.}
+  \end{subfigure}
+  \caption{Experimental results for the setup to a set-point change of 30 cm with a controller computed by LQR with $Q_3$ and $R_3$ and a cut-off frequency of 10 Hz.}
+  \label{fig:setup_cfreq_10}
+\end{figure} 
+
+\FloatBarrier
 
 \section{Conclusion}
 
-lol
+\section*{Conclusion}
+
+The development of the inverted pendulum control system highlighted the significant transition from theoretical modeling to practical implementation. The workflow began with the \textbf{linearization of the nonlinear plant dynamics}, providing a localized mathematical framework necessary for optimal control design. While the initial LQR controller demonstrated perfect stability in a simplified simulation environment, it served primarily as a baseline rather than a final solution.
+
+The shift towards a \textbf{realistic controller} introduced the inevitable complexities of physical hardware. The integration of \textbf{sensor noise and saturation limits} necessitated the use of low-pass filtering. Furthermore, the lack of direct measurement for all states required the implementation of \textbf{finite-difference methods} to estimate velocities, illustrating the engineering challenge of balancing estimation responsiveness against noise amplification.
+
+Ultimately, this project demonstrated that there is \textbf{no single ideal controller} capable of optimizing every performance metric simultaneously. The final design process is defined by fundamental compromises:
+
+\begin{itemize}
+    \item \textbf{Aggressive Gain vs. Actuator Limits:} High-gain LQR designs offer rapid disturbance rejection but risk triggering voltage saturation.
+    \item \textbf{Filtering vs. Phase Margin:} Heavy filtering stabilizes noisy sensor data but introduces latency that can destabilize the inherently unstable pendulum pole.
+    \item \textbf{Responsiveness vs. Robustness:} State estimation via finite-difference allows for a sensor-minimal design but requires careful tuning to avoid jitter in the control signal ($u$).
+\end{itemize}
+
+In conclusion, effective control design is not merely the calculation of optimal gains, but the iterative balancing of these physical trade-offs. The transition from a purely linear model to a hardware-constrained implementation reveals that the ``best'' controller is one that achieves a robust equilibrium between theoretical performance and the realities of the physical system
+
 \end{document}
 
 
